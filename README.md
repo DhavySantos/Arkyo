@@ -26,47 +26,45 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
         server.listen();
     ```
 ## Example
-    ```rust
-        use arkyo::{Server, Method, Response, Request};
+```rust
+    use arkyo::{Server, Method, Response, Request};
 
-        fn main() {
-            let mut server = Server::new("127.0.0.1:8080");
+    fn main() {
+        let mut server = Server::new("127.0.0.1:8080");
+        // Define routes
+        server.add_route("/", Method::Get, index_handler);
+        server.add_route("/about", Method::Get, about_handler);
+        // Set static folder
+        server.static_folder("./static");
+        // Start server
+        server.listen();
+    }
 
-            // Define routes
-            server.add_route("/", Method::Get, index_handler);
-            server.add_route("/about", Method::Get, about_handler);
-
-            // Set static folder
-            server.static_folder("./static");
-
-            // Start server
-            server.listen();
-        }
-
-        fn index_handler(_: Request) -> Response {
-            Response::new()
-                .status(200)
-                .body("Welcome to Arkyo!")
-        }
-
-        fn about_handler(_: Request) -> Response {
-            Response::new()
-                .status(200)
-                .body("Arkyo - A simple HTTP server written in Rust.")
-        }
-    ```
+    fn index_handler(_: Request) -> Response {
+        Response::new()
+            .status(200)
+            .body("Welcome to Arkyo!")
+    }
+    
+    fn about_handler(_: Request) -> Response {
+        Response::new()
+            .status(200)
+            .body("Arkyo - A simple HTTP server written in Rust.")
+    }
+```
+    
 ## Installation
-    Add arkyo to your Cargo.toml dependencies:
-    ```toml
-        [dependencies]
-        arkyo = "0.0.1"
-    ```
+Add arkyo to your Cargo.toml dependencies:
+```toml
+    [dependencies]
+    arkyo = "0.0.1"
+```
 
 ## Contributing
-    - Found a bug? Please open an issue.
-    - Want to contribute? Fork the repository and submit a pull request.
+- Found a bug? Please open an issue.
+- Want to contribute? Fork the repository and submit a pull request.
 
 ## License
-    This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 Arkyo - © 2024 DhavyLTS
