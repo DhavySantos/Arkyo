@@ -10,7 +10,7 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
 - **Error Handling**: Handle errors gracefully with appropriate HTTP status codes.
 
 ## Roadmap
-
+- [x] Static Content
 - [ ] Dynamic Routes
 - [ ] Multiform Support
 
