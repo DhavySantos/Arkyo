@@ -1,0 +1,15 @@
+[package]
+name = "arkyo"
+license = "MIT"
+edition = "2021"
+version = "0.0.1"
+authors = ["DhavyLTS"]
+description = "aether is a library for making HTTP requests"
+
+[dependencies]
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
