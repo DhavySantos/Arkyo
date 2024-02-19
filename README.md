@@ -12,19 +12,18 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
 ## Usage
 
 1. **Define Routes**: Add routes to the server instance using the `add_route` method.
-
-   ```rust
+```rust
     server.add_route("/example", Method::Get, handler_function);
-   ```
+```
 2. **Set Static Folder**: Optionally, set a folder from which to serve static files using `static_folder` method.
-
-    ```rust
-        server.static_folder("public");
-    ```
+```rust
+    server.static_folder("public");
+```
 3. **Start Server**: Begin listening for incoming connections using `listen` method.
-    ```rust
-        server.listen();
-    ```
+```rust
+    server.listen();
+```
+
 ## Example
 ```rust
     use arkyo::{Server, Method, Response, Request};
@@ -45,7 +44,7 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
             .status(200)
             .body("Welcome to Arkyo!")
     }
-    
+
     fn about_handler(_: Request) -> Response {
         Response::new()
             .status(200)
