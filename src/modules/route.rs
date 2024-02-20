@@ -1,15 +1,15 @@
-use std::str::FromStr;
+use std::{clone, str::FromStr};
 
 use super::{request::Request, response::Response};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Route {
     pub path: String,
     pub method: Method,
     pub handler: fn(Request) -> Response,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Method {
     Delete,
     Post,
