@@ -8,6 +8,7 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
 - **Routing**: Define routes with specific HTTP methods and corresponding handler functions.
 - **Static File Serving**: Serve static files from a specified folder.
 - **Error Handling**: Handle errors gracefully with appropriate HTTP status codes.
+- **Multi-threaded**: Arkyo is built to handle multiple incoming connections concurrently using multi-threading.
 
 ## Roadmap
 - [x] Static Content
