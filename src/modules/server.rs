@@ -43,13 +43,11 @@ impl Server {
     fn handle_connection (mut stream: TcpStream, routes: Vec<Route>, static_folder: Option<String>) {
         let mut buf = [0; 1024];
 
-        let request_string = match stream.read(&mut buf) {
-            Ok(size) => String::from_utf8_lossy(&buf[..size]),
+        let request = match stream.read(&mut buf) {
+            Ok(size) => Request::new(&String::from_utf8_lossy(&buf[..size])),
             Err(_) => return stream.write_all(b"HTTP/1.1 500 Internal Server Error\r\n\r\n").unwrap(),
         };
 
-        let request = Request::new(&request_string);
-        
         if let Some(static_folder) = &static_folder {
             let path = String::new() + &static_folder + &request.path;
 
