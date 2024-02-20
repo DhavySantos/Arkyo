@@ -1,4 +1,4 @@
-use std::{clone, str::FromStr};
+use std::str::FromStr;
 
 use super::{request::Request, response::Response};
 
