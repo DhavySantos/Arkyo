@@ -30,13 +30,17 @@ impl Server {
 
         for stream in listener.incoming() {
             match stream {
-                Ok(stream) => self.handle_connection(stream),
-                Err(err) => println!("Connection failed: {:?}", err), 
+                Ok(stream) =>  {
+                    let routes = self.routes.clone();
+                    let static_folder = self.static_folder.clone();
+                    std::thread::spawn(move || Self::handle_connection(stream, routes, static_folder));
+                },
+                Err(err) => return println!("Connection failed: {:?}", err), 
             }   
         }
     }
 
-    fn handle_connection (&self, mut stream: TcpStream) {
+    fn handle_connection (mut stream: TcpStream, routes: Vec<Route>, static_folder: Option<String>) {
         let mut buf = [0; 1024];
 
         let request_string = match stream.read(&mut buf) {
@@ -46,7 +50,7 @@ impl Server {
 
         let request = Request::new(&request_string);
         
-        if let Some(static_folder) = &self.static_folder {
+        if let Some(static_folder) = &static_folder {
             let path = String::new() + &static_folder + &request.path;
 
             if Path::new(&path).exists() {
@@ -66,13 +70,12 @@ impl Server {
             }
         }
 
-        let route = self.routes.iter().find(|route| route.path == request.path && route.method == request.method);
+        let route = routes.iter().find(|route| route.path == request.path && route.method == request.method);
         
         let response = match route {
             Some(route) => (route.handler)(request),
             None => return stream.write_all(b"HTTP/1.1 404 Not Found\r\n\r\n").unwrap(),
         };
-
         stream.write_all(response.to_string().as_bytes()).unwrap();
     }
 }   
