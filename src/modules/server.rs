@@ -3,7 +3,6 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::fs::File;
 
-use super::route;
 use super::{response::Response, request::Request, route::{Route, Method}};
 
 pub struct Server { 
@@ -55,7 +54,7 @@ impl Server {
             if Path::new(&path).exists() {
                 let mut file_string = String::new();
                 let mut file = match File::open(&path) {
-                    Err(_) => return stream.write_all(b"HTTP/1.1 404 Not Found\r\n\r\n").unwrap(),
+                    Err(_) => return stream.write_all(b"HTTP/1.1 500 Internal Server Error\r\n\r\n").unwrap(),
                     Ok(file) => file,
                 };
     
