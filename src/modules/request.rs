@@ -5,9 +5,10 @@ use super::route::Method;
 #[derive(Debug)]
 pub struct Request {
     pub headers: HashMap<String, String>,
+    pub params: HashMap<String, String>,
+    pub path: Vec<String>,
     pub method: Method,
     pub body: String,
-    pub path: String,
 }
 
 impl Request {
@@ -21,7 +22,6 @@ impl Request {
         let lines: Vec<&str> = request.split("\r\n").skip(1).collect();
         
         let mut headers = HashMap::new();
-        
 
         for line in lines {
             let mut parts = line.split(": ");
@@ -31,9 +31,10 @@ impl Request {
         }
         
         Request {
+            path: path.split("/").skip(1).map(|s| s.to_string()).collect(),
             method: Method::from_str(method).unwrap(),
             body: body.to_string(),
-            path: path.to_string(),
+            params: HashMap::new(),
             headers,
         }
 
