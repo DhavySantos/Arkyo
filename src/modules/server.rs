@@ -3,6 +3,7 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::fs::File;
 
+use super::route;
 use super::{response::Response, request::Request, route::{Route, Method}};
 
 pub struct Server { 
@@ -43,13 +44,13 @@ impl Server {
     fn handle_connection (mut stream: TcpStream, routes: Vec<Route>, static_folder: Option<String>) {
         let mut buf = [0; 1024];
 
-        let request = match stream.read(&mut buf) {
+        let mut request = match stream.read(&mut buf) {
             Ok(size) => Request::new(&String::from_utf8_lossy(&buf[..size])),
             Err(_) => return stream.write_all(b"HTTP/1.1 500 Internal Server Error\r\n\r\n").unwrap(),
         };
 
         if let Some(static_folder) = &static_folder {
-            let path = String::new() + &static_folder + &request.path;
+            let path = String::new() + &static_folder + "/" + &request.path.join("/");
 
             if Path::new(&path).exists() {
                 let mut file_string = String::new();
@@ -67,10 +68,41 @@ impl Server {
                 return stream.write_all(response.to_string().as_bytes()).unwrap();
             }
         }
-
-        let route = routes.iter().find(|route| route.path == request.path && route.method == request.method);
         
-        let response = match route {
+        let mut opt_route: Option<&Route> = None;
+
+        for route in routes.iter() {
+            if route.path.len() != request.path.len() { continue;}
+            
+            let mut params: Vec<String> = route.params.clone();
+            let mut path: Vec<String> = Vec::new();
+
+            
+            for idx in 0..route.path.len() {
+                let request_path = &request.path[idx];
+                let route_path = &route.path[idx];
+                
+                if request_path != route_path && route_path != "*" { break;}
+
+                if request_path == route_path { 
+                    path.push(request_path.to_string());
+                    continue;
+                }
+
+                if route_path == "*" {
+                    request.params.insert(params.remove(0), request_path.to_string());
+                    path.push(route_path.to_string());
+                    continue;
+                }
+            }
+
+            if path == route.path {
+                opt_route = Some(route);
+                break;
+            }
+        }
+        
+        let response = match opt_route {
             Some(route) => (route.handler)(request),
             None => return stream.write_all(b"HTTP/1.1 404 Not Found\r\n\r\n").unwrap(),
         };
