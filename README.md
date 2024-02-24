@@ -74,7 +74,7 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
 Add arkyo to your Cargo.toml dependencies:
 ```toml
     [dependencies]
-    arkyo = "0.0.1"
+    arkyo = "0.0.2"
 ```
 
 ## Contributing
