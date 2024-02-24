@@ -71,7 +71,7 @@ impl Server {
         let mut opt_route: Option<&Route> = None;
 
         for route in routes.iter() {
-            if route.path.len() != request.path.len() { continue;}
+            if route.path.len() != request.path.len() || route.method != request.method { continue;}
             
             let mut params: Vec<String> = route.params.clone();
             let mut path: Vec<String> = Vec::new();
