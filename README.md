@@ -5,16 +5,16 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
 ## Features
 
 - **HTTP Server**: Arkyo listens for incoming TCP connections, parses HTTP requests, and dispatches them to corresponding handlers.
-- **Routing**: Define routes with specific HTTP methods and corresponding handler functions.
+- **Routing**: Define routes with specific HTTP methods and corresponding handler functions. Supports both static and dynamic routes.
 - **Static File Serving**: Serve static files from a specified folder.
 - **Error Handling**: Handle errors gracefully with appropriate HTTP status codes.
 - **Multi-threaded**: Arkyo is built to handle multiple incoming connections concurrently using multi-threading.
 
 ## Roadmap
 - [x] Static Content
-- [ ] Dynamic Routes
+- [x] Dynamic Routes
 - [ ] Multiform Support
-
+- [ ] Middleware Support
 ## Usage
 
 1. **Define Routes**: Add routes to the server instance using the `add_route` method.
@@ -36,11 +36,15 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
 
     fn main() {
         let mut server = Server::new("127.0.0.1:8080");
+
         // Define routes
         server.add_route("/", Method::Get, index_handler);
         server.add_route("/about", Method::Get, about_handler);
+        server.add_route("/user/:id", Method::Get, user_handler);
+
         // Set static folder
         server.static_folder("./static");
+
         // Start server
         server.listen();
     }
@@ -55,6 +59,14 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
         Response::new()
             .status(200)
             .body("Arkyo - A simple HTTP server written in Rust.")
+    }
+
+    fn user_handler(req: Request) -> Response {
+        let user_id = req.params.get("id").unwrap_or("unknown");
+
+        Response::new()
+            .status(200)
+            .body(format!("User profile page for user {}", user_id))
     }
 ```
     

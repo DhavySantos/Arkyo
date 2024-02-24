@@ -4,8 +4,9 @@ use super::{request::Request, response::Response};
 
 #[derive(Debug, Clone)]
 pub struct Route {
-    pub path: String,
     pub method: Method,
+    pub path: Vec<String>,
+    pub params: Vec<String>,
     pub handler: fn(Request) -> Response,
 }
 
@@ -32,6 +33,21 @@ impl FromStr for Method {
 
 impl Route {
     pub fn new(path: String, method: Method, handler: fn(Request) -> Response) -> Route {
-        Route { path, method, handler }
+        let parts: Vec<&str> = path.split("/").skip(1).collect();
+        let mut params: Vec<String> = Vec::new();
+        let mut path: Vec<String> = Vec::new();
+        
+        for char in parts {
+            if char.starts_with(":") {
+                let param = char.trim_start_matches(":");
+                let param  = param.to_string();
+                path.push(String::from("*"));
+                params.push(param);
+            } else {
+                path.push(char.to_string());
+            }
+        }
+
+        Route { path, method, handler, params }
     }
 }
