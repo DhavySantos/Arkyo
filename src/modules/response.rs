@@ -1,57 +1,46 @@
 use std::collections::HashMap;
+use chrono::Utc;
 
-#[derive(PartialEq, Debug)]
+use super::http;
+
+#[derive(Debug)]
 pub struct Response {
-    pub headers: Option<HashMap<String, String>>,
-    pub status_code: Option<u16>,
-    pub body: Option<String>,
+    headers: Option<HashMap<String, String>>,
+    status: Option<http::Status>,
+    body: Option<String>,
 }
 
 impl ToString for Response {
-
     fn to_string(&self) -> String {
         let mut response = String::new();
+        
+        let body_binding: String = String::new();
+        let headers_binding: HashMap<String, String> = HashMap::new();
 
-        if let Some(status_code) = self.status_code {
-            response.push_str(&format!("HTTP/1.1 {}\n", status_code));
-        }
+        let body = self.body.as_ref().unwrap_or(&body_binding);
+        let status = self.status.as_ref().unwrap_or(&http::Status::Ok);
+        let headers = self.headers.as_ref().unwrap_or(&headers_binding);
 
-        if let Some(headers) = &self.headers {
-            for (key, value) in headers {
-                response.push_str(&format!("{}: {}\n", key, value));
-            }
-        }
+        let date = Utc::now().format("%a, %d %b %Y %H:%M:%S GMT");
+        let code = 10;
 
-        if let Some(body) = &self.body {
-            response.push_str("\n");
-            response.push_str(body);
+        response += format!("HTTP/1.1 {} \r\n", code).as_str();
+        response += format!("Date: {}\r\n", date).as_str();
+        response += format!("Server: Arkyo/0.0.4\r\n").as_str();
+
+        for (key, value) in headers.iter() {
+            response += format!("{}: {}\r\n", key, value).as_str();
         }
+        
+        response += format!("\r\n{}", body).as_str();
 
         response
     }
 }
 
 impl Response {
-    pub fn new() -> Self {
-        Self {
-            status_code: None,
-            headers: None,
-            body: None,
-        }
-    }
-
-    pub fn status (mut self, status_code: u16) -> Self {
-        self.status_code = Some(status_code);
-        self
-    }
-
-    pub fn body (mut self, body: String) -> Self {
-        self.body = Some(body);
-        self
-    }
-
-    pub fn headers (mut self, headers: HashMap<String, String>) -> Self {
-        self.headers = Some(headers);
-        self
-    }
+    pub fn new() -> Self { Self { headers: None, status: None, body: None } }
+    pub fn headers (mut self, headers: HashMap<String, String>) -> Self { self.headers = Some(headers); self }
+    pub fn status (mut self, status: http::Status) -> Self { self.status = Some(status); self }
+    pub fn body (mut self, body: String) -> Self { self.body = Some(body); self }
 }
