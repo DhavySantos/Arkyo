@@ -35,37 +35,37 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
     use arkyo::{Server, Method, Response, Request};
 
     fn main() {
-        let mut server = Server::new("127.0.0.1:8080");
-
+        let mut server = Server::new();
+    
         // Define routes
         server.add_route("/", Method::Get, index_handler);
         server.add_route("/about", Method::Get, about_handler);
         server.add_route("/user/:id", Method::Get, user_handler);
-
+    
         // Set static folder
         server.static_folder("./static");
-
+    
         // Start server
-        server.listen();
+        server.listen("127.0.0.1:8080");
     }
-
+    
     fn index_handler(_: Request) -> Response {
         Response::new()
-            .status(200)
-            .body("Welcome to Arkyo!")
+            .status(Status::Ok)
+            .body("Welcome to Arkyo!".to_string())
     }
-
+    
     fn about_handler(_: Request) -> Response {
         Response::new()
-            .status(200)
-            .body("Arkyo - A simple HTTP server written in Rust.")
+            .status(Status::Ok)
+            .body("Arkyo - A simple HTTP server written in Rust.".to_string())
     }
-
+    
     fn user_handler(req: Request) -> Response {
-        let user_id = req.params.get("id").unwrap_or("unknown");
-
+        let user_id = req.params.get("id").unwrap();
+    
         Response::new()
-            .status(200)
+            .status(Status::Ok)
             .body(format!("User profile page for user {}", user_id))
     }
 ```
@@ -74,7 +74,7 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
 Add arkyo to your Cargo.toml dependencies:
 ```toml
     [dependencies]
-    arkyo = "0.0.3"
+    arkyo = "0.0.4"
 ```
 
 ## Contributing
