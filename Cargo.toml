@@ -2,11 +2,12 @@
 name = "arkyo"
 license = "MIT"
 edition = "2021"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["DhavyLTS"]
-description = "arkyo is a library for making HTTP requests"
+description = "arkyo is a library for making HTTP Server"
 
 [dependencies]
+chrono = "0.4.34"
 
 [profile.dev]
 opt-level = 0
