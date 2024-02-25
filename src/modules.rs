@@ -1,9 +1,9 @@
 mod connection;
-mod response;
-mod request;
-mod server;
-mod route;
-mod http;
+pub mod response;
+pub mod request;
+pub mod server;
+pub mod route;
+pub mod http;
 
 
 pub mod prelude {
