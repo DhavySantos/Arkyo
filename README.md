@@ -32,7 +32,7 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
 
 ## Example
 ```rust
-    use arkyo::{Server, Method, Response, Request};
+    use arkyo::prelude::*;
 
     fn main() {
         let mut server = Server::new();
@@ -74,7 +74,7 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
 Add arkyo to your Cargo.toml dependencies:
 ```toml
     [dependencies]
-    arkyo = "0.0.4"
+    arkyo = "0.0.5"
 ```
 
 ## Contributing
