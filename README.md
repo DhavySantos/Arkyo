@@ -60,13 +60,13 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
     fn index_handler(_: Request) -> Response {
         Response::new()
             .status(Status::Ok)
-            .body("Welcome to Arkyo!".to_string())
+            .body("Welcome to Arkyo!")
     }
     
     fn about_handler(_: Request) -> Response {
         Response::new()
             .status(Status::Ok)
-            .body("Arkyo - A simple HTTP server written in Rust.".to_string())
+            .body("Arkyo - A simple HTTP server written in Rust.")
     }
     
     fn user_handler(req: Request) -> Response {
