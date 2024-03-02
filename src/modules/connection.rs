@@ -81,9 +81,11 @@ pub fn handler(mut stream: TcpStream, middlewares: Vec<Middleware>, routes: Vec<
 
     if let Some(route) = opt_route {
         for middleware in middlewares {
-            match middleware.handle(request.clone()) {
-                Err(_response) => { response = Some(_response); break; }
-                Ok(_request) => { request = _request; },
+            if route.path.starts_with(&middleware.path) {
+                match middleware.handle(request.clone()) {
+                    Err(_response) => { response = Some(_response); break; }
+                    Ok(_request) => { request = _request; },
+                }
             }
         }
         if response.is_none() { response = Some(route.handle(request)); }
