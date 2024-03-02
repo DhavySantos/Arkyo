@@ -21,7 +21,16 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
 ```rust
     server.add_route("/example", Method::Get, handler_function);
 ```
+<<<<<<< Updated upstream
 2. **Set Static Folder**: Optionally, set a folder from which to serve static files using `static_folder` method.
+=======
+2. **Define Middlewares**: Add Middlewares to the server isntance using `add_middleware` method.
+```rust
+    sever.add_middleware("/path", middleware_function)
+```
+
+3. **Set Static Folder**: Optionally, set a folder from which to serve static files using `static_folder` method.
+>>>>>>> Stashed changes
 ```rust
     server.static_folder("public");
 ```
