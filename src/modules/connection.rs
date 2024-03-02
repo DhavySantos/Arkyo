@@ -43,7 +43,7 @@ pub fn handler(mut stream: TcpStream, middlewares: Vec<Middleware>, routes: Vec<
 
             let response = Response::new()
                 .status(Status::Ok)
-                .body(file_string);
+                .body(&file_string);
 
             return stream.write_all(response.to_string().as_bytes()).unwrap();
         }
