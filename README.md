@@ -51,7 +51,7 @@ Arkyo is a simple HTTP server written in Rust, designed to handle incoming reque
         server.add_route("/user/:id", Method::Get, user_handler);
     
         // Set static folder
-        server.static_folder("./static");
+        server.static_folder("/static");
     
         // Start server
         server.listen("127.0.0.1:8080");
