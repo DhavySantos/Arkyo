@@ -22,8 +22,8 @@ impl Server {
         self.routes.push(Route::new(path.to_string(), method, handler));
     }
 
-    pub fn add_middleware(&mut self, handler: fn(Request) -> Result<Request, Response>) {
-        self.middleware.push(Middleware::new(handler))
+    pub fn add_middleware(&mut self, path: &str, handler: fn(Request) -> Result<Request, Response>) {
+        self.middleware.push(Middleware::new(path.to_string(), handler))
     }
 
     pub fn static_folder(&mut self, path: &str) {
