@@ -1,8 +1,8 @@
 [package]
 name = "arkyo"
 license = "MIT"
-version = "0.0.7"
 edition = "2021"
+version = "0.0.7"
 authors = ["DhavyLTS", "Velasco"]
 description = "Arkyo is a library for making HTTP Server"
 
