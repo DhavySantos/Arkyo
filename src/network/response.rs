@@ -1,21 +1,18 @@
-use std::{collections::HashMap, io::Write, net::TcpStream};
-
+use std::collections::HashMap;
 use crate::network::Status;
 
-pub struct Response<'life> { 
+pub struct Response { 
     headers: HashMap<String, String>,
-    stream: &'life mut TcpStream,
     status: Status,
     body: String,
 }
 
-impl<'life> Response<'life> { 
-    pub fn new(stream: &'life mut TcpStream) -> Response<'life> { 
+impl Response { 
+    pub fn new() -> Response { 
         Response {
             headers: HashMap::new(),
             body: String::new(),
             status: Status::Ok,
-            stream
         }
     }
     
@@ -30,20 +27,15 @@ impl<'life> Response<'life> {
     pub fn body(&mut self, input: String) {
         self.body = input;
     }
-
-    pub fn send(&mut self) {
-        let payload = self.to_string();
-        self.stream.write_all(payload.as_bytes()).unwrap();
-    }
 }
 
-impl<'life> ToString for Response<'life> { 
+impl ToString for Response { 
     
     fn to_string(&self) -> String {
         let mut output = String::new();
 
         output.push_str(&format!("HTTP/1.1 {} {}\n", self.status.code(), self.status.to_string()));
-        output.push_str("Server: arkyo/0.0.6 (unix)\n");
+        output.push_str("Server: arkyo/0.0.7\n");
 
         for (key, value) in &self.headers {
             output.push_str(&format!("{}: {}\n", key, value));

@@ -1,9 +1,9 @@
-mod _response;
-mod _request;
-mod _status;
-mod _method;
+mod response;
+mod request;
+mod status;
+mod method;
 
-pub use self::_response::Response;
-pub use self::_request::Request;
-pub use self::_method::Method;
-pub use self::_status::Status;
+pub use self::response::Response;
+pub use self::request::Request;
+pub use self::method::Method;
+pub use self::status::Status;

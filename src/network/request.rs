@@ -6,10 +6,10 @@ use regex::Regex;
 pub struct Request {
     headers: HashMap<String, String>,
     params: HashMap<String, String>,
-    path: Vec<String>,
     protocol: String,
     method: Method,
     body: String,
+    path: String,
 }
 
 impl Request {
@@ -20,11 +20,11 @@ impl Request {
             params: HashMap::new(), 
             method: Method::Get,
             body: String::new(),
-            path: Vec::new(),
+            path: String::new(),
         }
     }
     
-    pub fn path(&self) -> &Vec<String> {
+    pub fn path(&self) -> &String {
         &self.path
     }
 
@@ -58,7 +58,7 @@ impl Request {
             };
 
             request.path = match captures.name("path") {
-                Some(path) => path.as_str().split("/").filter(|f| !f.is_empty()).map(|f| f.to_string()).collect(),
+                Some(path) => String::from(path.as_str()),
                 None => return Err(()),
             };
         };
@@ -83,11 +83,5 @@ impl Request {
         };
         
         Ok(request)
-    }
-
-    pub fn as_str() -> String {
-        let output = String::new();
-
-        output
     }
 }
