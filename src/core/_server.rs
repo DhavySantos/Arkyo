@@ -17,6 +17,11 @@ impl Server {
         }    
     }
 
+    pub fn use_middleware(&mut self, path: &str, handler: fn(&mut Request, &mut Response) -> Result<(), ()> ) {
+        let middleware = Middleware::new(path.to_string(), handler);
+        self.pipes.push(Pipeline::Middleware(middleware));
+    }
+
     pub fn listen(&self, addr: &str) {
         let listener = match TcpListener::bind(&addr) {
             Err(err) => panic!("{:#?}", err),
