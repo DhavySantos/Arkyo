@@ -12,7 +12,7 @@ pub struct Route {
 impl Route {
     fn new(path: String, method: Method, handler: fn(Request) -> Response) -> Route {
         let regex = Regex::new(r"(:\w+)").unwrap();
-        let regex = regex.replace_all(&path, r"([^/]+)");
+        let regex = regex.replace_all(&path, r"([^/]+)") + "/?$";
         let regex = Regex::new(&regex).unwrap();
         
         Route { path, method, handler, regex }    
