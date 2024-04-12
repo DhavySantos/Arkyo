@@ -50,6 +50,8 @@ fn handle_connection(mut stream: TcpStream, mut routes: Vec<Route>) {
     };
 
     for route in routes.iter_mut() {
+        if route.method() != request.method() { continue; }
+        if !route.compare(request.path()) { continue; };
         let response = route.handle(request);
         stream.write_all(response.to_string().as_bytes()).unwrap();
         break;
