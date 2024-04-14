@@ -2,8 +2,10 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 
 use crate::core::{RouteHandler, MiddlewareHandler};
-use crate::network::{Method, Request, Response};
-use crate::core::{Route, Path, Pipeline};
+use crate::network::{Method, Request};
+use crate::core::{Route, Pipeline};
+
+use super::Middleware;
 
 
 pub struct Server {
@@ -16,15 +18,15 @@ impl Server {
     }
 
     pub fn use_route(&mut self, path_str: &str, method: Method, handler: RouteHandler) -> Result<(), ()> {
-        //match Path::parse(path_str.to_string()) {
-        //    Ok(path) => {
-        //        let route = Route::new(path, method, handler);
-        //        self.pipeline.push(route);
-        //        Ok(())
-        //    },
-        //    Err(_) => Err(()),
-        //}
-        todo!();
+        let route = Route::new(String::from(path_str), method, handler);
+        self.pipeline.push(Pipeline::Route(route));
+        Ok(())
+    }
+
+    pub fn use_middleware(&mut self, path_str: &str, handler: MiddlewareHandler) -> Result<(), ()> {
+        let middleware = Middleware::new(String::from(path_str), handler);
+        self.pipeline.push(Pipeline::Middleware(middleware));
+        Ok(())
     }
 
     pub fn listen(&self, addr: &str) {
@@ -57,9 +59,10 @@ fn handle_connection(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
 
     for pipe in pipeline {
         if let Pipeline::Middleware(middleware) = pipe {
+            if !middleware.compare(&request.path()) { continue; }
             match middleware.handle(request) {
                 Ok(_request) => { request = _request; continue; },
-                Err(_response) => { break; },
+                Err(_response) => { stream.write_all(_response.to_string().as_bytes()).unwrap(); break; },
             }
         };
 
