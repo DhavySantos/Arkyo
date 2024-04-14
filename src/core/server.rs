@@ -1,28 +1,30 @@
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 
+use crate::core::{RouteHandler, MiddlewareHandler};
 use crate::network::{Method, Request, Response};
-use crate::core::{Route, Path};
+use crate::core::{Route, Path, Pipeline};
 
 
 pub struct Server {
-    routes: Vec<Route>
+    pipeline: Vec<Pipeline>
 }
 
 impl Server {
     pub fn new() -> Server {
-        Server { routes: Vec::new() }
+        Server { pipeline: Vec::new() }
     }
 
-    pub fn use_route(&mut self, path_str: &str, method: Method, handler: fn(Request) -> Response) -> Result<(), ()> {
-        match Path::parse(path_str.to_string()) {
-            Ok(path) => {
-                let route = Route::new(path, method, handler);
-                self.routes.push(route);
-                Ok(())
-            },
-            Err(_) => Err(()),
-        }
+    pub fn use_route(&mut self, path_str: &str, method: Method, handler: RouteHandler) -> Result<(), ()> {
+        //match Path::parse(path_str.to_string()) {
+        //    Ok(path) => {
+        //        let route = Route::new(path, method, handler);
+        //        self.pipeline.push(route);
+        //        Ok(())
+        //    },
+        //    Err(_) => Err(()),
+        //}
+        todo!();
     }
 
     pub fn listen(&self, addr: &str) {
@@ -33,14 +35,14 @@ impl Server {
 
         for incoming in listener.incoming() {
             if let Ok(stream) = incoming {
-                let routes = self.routes.clone();
-                std::thread::spawn(move || handle_connection(stream, routes));
+                let pipeline = self.pipeline.clone();
+                std::thread::spawn(move || handle_connection(stream, pipeline));
             };
         };
     }
 }
 
-fn handle_connection(mut stream: TcpStream, mut routes: Vec<Route>) {
+fn handle_connection(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
     let mut buffer = vec![0; 1024];
 
     let request_str = match stream.read(&mut buffer) {
@@ -48,16 +50,25 @@ fn handle_connection(mut stream: TcpStream, mut routes: Vec<Route>) {
         Err(err) => panic!("{:#?}", err),
     };
 
-    let request = match Request::from_str(&request_str) {
+    let mut request = match Request::from_str(&request_str) {
         Err(err) => panic!("{:#?}", err),
         Ok(request) => request,
     };
 
-    for route in routes.iter_mut() {
-        if route.method() != request.method() { continue; }
-        if !route.compare(request.path()) { continue; };
-        let response = route.handle(request);
-        stream.write_all(response.to_string().as_bytes()).unwrap();
-        break;
+    for pipe in pipeline {
+        if let Pipeline::Middleware(middleware) = pipe {
+            match middleware.handle(request) {
+                Ok(_request) => { request = _request; continue; },
+                Err(_response) => { break; },
+            }
+        };
+
+        if let Pipeline::Route(route) = pipe {
+            if route.method() != request.method() { continue; }
+            if !route.compare(request.path()) { continue; };
+            let response = route.handle(request);
+            stream.write_all(response.to_string().as_bytes()).unwrap();
+            break;
+        };
     };
 }
