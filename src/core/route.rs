@@ -1,15 +1,17 @@
 use crate::network::{Method, Request, Response};
 use super::Path;
 
+pub type RouteHandler = fn (Request) -> Response;
+
 #[derive(Clone)]
 pub struct Route {
-    handler: fn(Request) -> Response,
+    handler: RouteHandler,
     method: Method,
     path: Path,
 }
 
 impl Route {
-    pub fn new(path: Path, method: Method, handler: fn(Request) -> Response) -> Route {
+    pub fn new(path: Path, method: Method, handler: RouteHandler) -> Route {
         Route { path, method, handler }
     }
 
