@@ -2,21 +2,25 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 
 use crate::network::{Method, Request, Response};
-use crate::core::Route;
+use crate::core::{Route, Path};
 
 
-pub struct Server { 
+pub struct Server {
     routes: Vec<Route>
 }
 
 impl Server {
     pub fn new() -> Server {
-        Server { routes: Vec::new() }    
+        Server { routes: Vec::new() }
     }
 
-    pub fn use_route(&mut self, path: &str, method: Method, handler: fn(Request) -> Response) -> Result<(), ()> {
-        match Route::parse(path.to_string(), method, handler) { 
-            Ok(route) => { self.routes.push(route); Ok(()) },
+    pub fn use_route(&mut self, path_str: &str, method: Method, handler: fn(Request) -> Response) -> Result<(), ()> {
+        match Path::parse(path_str.to_string()) {
+            Ok(path) => {
+                let route = Route::new(path, method, handler);
+                self.routes.push(route);
+                Ok(())
+            },
             Err(_) => Err(()),
         }
     }
@@ -38,7 +42,7 @@ impl Server {
 
 fn handle_connection(mut stream: TcpStream, mut routes: Vec<Route>) {
     let mut buffer = vec![0; 1024];
-    
+
     let request_str = match stream.read(&mut buffer) {
         Ok(size) => String::from_utf8_lossy(&buffer[..size]),
         Err(err) => panic!("{:#?}", err),
