@@ -24,6 +24,14 @@ impl Request {
         }
     }
     
+    pub fn set_params(&mut self, params: HashMap<String, String>) {
+        self.params = params;
+    }
+
+    pub fn params(&self) -> &HashMap<String, String> {
+        &self.params
+    }
+
     pub fn path(&self) -> &String {
         &self.path
     }
