@@ -1,5 +1,5 @@
 use crate::network::{Method, Request, Response};
-use super::Path;
+use regex::Regex;
 
 pub type RouteHandler = fn (Request) -> Response;
 
@@ -7,15 +7,22 @@ pub type RouteHandler = fn (Request) -> Response;
 pub struct Route {
     handler: RouteHandler,
     method: Method,
-    path: Path,
+    regex: Regex,
+    path: String,
 }
 
 impl Route {
-    pub fn new(path: Path, method: Method, handler: RouteHandler) -> Route {
-        Route { path, method, handler }
+    pub fn new(path: String, method: Method, handler: RouteHandler) -> Route {        
+        let regex = Regex::new(r"(:\w+)").unwrap();
+        let regex = regex.replace_all(&path, r"([^/]+)") + "/?$";
+        let regex = Regex::new(&regex).unwrap();
+
+        Route { path, method, handler, regex }
     }
 
-    pub fn compare(&self, input: &str) -> bool { self.path.is_match(input) }
+    pub fn compare(&self, input: &str) -> bool { 
+        self.regex.is_match(input) 
+    }
 
     pub fn handle(&self, request: Request) -> Response {
         (self.handler)(request)
