@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 
@@ -27,7 +28,7 @@ impl Server {
 
     pub fn listen(&self, addr: &str) {
         let listener = match TcpListener::bind(&addr) {
-            Err(err) => panic!("{:#?}", err),
+            Err(err) => todo!(),
             Ok(listener) => listener,
         };
 
@@ -45,11 +46,11 @@ fn handle_connection(mut stream: TcpStream, mut routes: Vec<Route>) {
 
     let request_str = match stream.read(&mut buffer) {
         Ok(size) => String::from_utf8_lossy(&buffer[..size]),
-        Err(err) => panic!("{:#?}", err),
+        Err(err) => todo!(),
     };
 
     let request = match Request::from_str(&request_str) {
-        Err(err) => panic!("{:#?}", err),
+        Err(err) => todo!(),
         Ok(request) => request,
     };
 
