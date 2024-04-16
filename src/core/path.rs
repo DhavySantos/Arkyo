@@ -52,12 +52,15 @@ mod tests {
 
     #[test]
     fn successful_path_parsing() {
-        let cases = vec!["aaa"];
+        let cases = vec!["basic string", "http://my.url/test/path/:id"];
 
         for case in cases {
             let solution = Ok(Path {
                 value: String::from(case),
-                regex: Regex::new(format!("{case}/?$").as_str()).unwrap(),
+                regex: Regex::new(
+                    format!("{}/?$", PATH_ARG_REGEX.replace_all(case, r"([^/]+)")).as_str(),
+                )
+                .unwrap(),
             });
 
             let path = Path::parse(case.to_string());
@@ -66,14 +69,16 @@ mod tests {
     }
 
     #[test]
-    fn failed_path_parsing() {
-        let cases: Vec<&str> = vec![];
+    fn syntax_error_path_parsing() {
+        let cases: Vec<&str> = vec!["try (this"];
 
         for case in cases {
             let path = Path::parse(case.to_string());
             assert_eq!(
                 path,
-                Err(PathErrors::RegexError(RError::Syntax("a".to_string())))
+                Err(PathErrors::RegexError(RError::Syntax(format!(
+                    "regex parse error:\n    {case}/?$\n        ^\nerror: unclosed group"
+                ))))
             );
         }
     }
