@@ -1,8 +1,21 @@
+use lazy_static::lazy_static;
+use std::str::FromStr;
 use std::collections::HashMap;
 use super::Method;
-use regex::Regex;
+use regex::{Regex, Captures};
+use regex::Error as RError;
 
-#[derive(Debug)]
+
+#[cfg_attr(test, derive(Debug, PartialEq))]
+pub enum RequestErrors {
+    Regex(RError),
+    Entry(String),
+    NotHTTP,
+    InvalidMethod,
+}
+
+
+#[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Request {
     headers: HashMap<String, String>,
     params: HashMap<String, String>,
@@ -12,18 +25,24 @@ pub struct Request {
     path: String,
 }
 
+static HEADER_REGEX_STR: &str = r"(?P<key>[^:\s]+): *(?P<value>.*)";
+lazy_static! {
+    static ref HTTP_REGEX: Regex = Regex::new(format!(r"^(?P<method>\w+) (?P<path>[^\s]+) (?P<version>[^\s]+)(?P<headers>(\n{HEADER_REGEX_STR})*)(\n\n(?P<body>(?s:.*)))\z").as_str()).unwrap();
+    static ref HEADER_REGEX: Regex = Regex::new(format!("({HEADER_REGEX_STR})").as_str()).unwrap();
+}
+
 impl Request {
     fn new() -> Request {
-        Request { 
-            protocol: String::new(), 
-            headers: HashMap::new(), 
-            params: HashMap::new(), 
+        Request {
+            protocol: String::new(),
+            headers: HashMap::new(),
+            params: HashMap::new(),
             method: Method::Get,
             body: String::new(),
             path: String::new(),
         }
     }
-    
+
     pub fn path(&self) -> &String {
         &self.path
     }
@@ -32,56 +51,68 @@ impl Request {
         &self.method
     }
 
-    pub fn from_str(input: &str) -> Result<Request, ()>{
+    fn parse_http(content: Captures) -> Result<Request, RequestErrors> {
         let mut request = Request::new();
-    
-        let entry_regex = Regex::new(r"^(?P<method>\w+) (?P<path>[^\s]+) (?P<protocol>[^\s]+)").unwrap();
-        let header_regex = Regex::new(r"(?i)^([^:\s]+):\s*(.*)$").unwrap();
-        let body_regex = Regex::new(r"\r\n\r\n(.*)$").unwrap();
 
-        let mut lines = input.lines();
-
-        let entry = match lines.next() {
-            Some(entry) => entry,
-            None => return Err(()),
+        request.method = match Method::from_str(
+            content.name("method")
+            .expect("Method must be provided in http.").as_str()
+        ) {
+            Ok(method) => method,
+            Err(_) => return Err(RequestErrors::InvalidMethod)
         };
 
-        if let Some(captures) = entry_regex.captures(&entry) {
-            request.protocol = match captures.name("protocol") {
-                Some(protocol) => String::from(protocol.as_str()),
-                None => return Err(()),
-            };
-            
-            request.method = match captures.name("method") {
-                Some(method) => Method::from_str(method.as_str())?,
-                None => return Err(()),
-            };
+        request.path = String::from(
+            content.name("path")
+            .expect("Path must be provided in http.")
+            .as_str());
 
-            request.path = match captures.name("path") {
-                Some(path) => String::from(path.as_str()),
-                None => return Err(()),
-            };
-        };
+        request.protocol = String::from(
+            content.name("version")
+            .expect("Protocol version must be provided in http.")
+            .as_str());
 
-        for line in input.lines() {
-            if line.trim().is_empty() {
-                break;
-            };
+        request.body = String::from(content.name("body").map_or("", |value| value.as_str()));
 
-            if let Some(captures) = header_regex.captures(&line) { 
-                let key = String::from(captures.get(1).unwrap().as_str());
-                let value = String::from(captures.get(2).unwrap().as_str());
-                request.headers.insert(key, value);
-            };
-        };
-
-        if let Some(captures) = body_regex.captures(&input) {
-            request.body = match captures.get(1) {
-                Some(body) => String::from(body.as_str()),
-                None => return Err(()),
-            };
-        };
-        
+        let header_content = content.name("headers").map_or("", |value| value.as_str());
+        request.headers = HEADER_REGEX.captures_iter(header_content).map(|header| {
+            (
+                String::from(header.name("key").map_or("", |value| value.as_str())),
+                String::from(header.name("value").map_or("", |value| value.as_str()))
+            )
+        }).collect();
         Ok(request)
     }
+}
+
+impl FromStr for Request{
+    type Err = RequestErrors;
+
+    fn from_str(input: &str) -> Result<Request, Self::Err>{
+        match HTTP_REGEX.captures(input) {
+            None => Err(RequestErrors::NotHTTP),
+            Some(content) => Self::parse_http(content)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn regex_test() {
+        let request = "GET /this/specific/path HTTP/1.1
+Host: 127.0.0.1:8888
+Connection: keep-alive
+empty-header-test:
+no-space:test
+
+body content";
+
+        let result = Request::from_str(request);
+        println!("{:?}", result);
+    }
+
+
 }
