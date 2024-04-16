@@ -1,19 +1,22 @@
-#[derive(PartialEq, Debug, Clone)]
-pub enum Method { 
+use std::str::FromStr;
+use strum_macros::{EnumString, IntoStaticStr};
+
+#[cfg_attr(test, derive(Debug))]
+#[derive(Clone, EnumString, IntoStaticStr, PartialEq)]
+#[strum(serialize_all = "UPPERCASE")]
+pub enum Method {
     Get,
     Post,
     Patch,
     Delete,
 }
 
-impl Method {
-    pub fn from_str(input: &str) -> Result<Method, ()> {
-        match input.to_uppercase().as_str() {
-            "GET" => Ok(Method::Get),
-            "POST" => Ok(Method::Post),
-            "PATCH" => Ok(Method::Patch),
-            "DELETE" => Ok(Method::Delete),
-            _ => Err(())
-        }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn string_to_method() {
+        let cases = vec!["GET", "POST"];
     }
 }
