@@ -1,7 +1,11 @@
+use lazy_static::lazy_static;
+use regex::Error as RError;
 use regex::Regex;
 
 #[cfg_attr(test, derive(Debug, PartialEq))]
-pub enum PathErrors {}
+pub enum PathErrors {
+    RegexError(RError),
+}
 
 #[derive(Clone)]
 #[cfg_attr(test, derive(Debug))]
@@ -10,13 +14,17 @@ pub struct Path {
     regex: Regex,
 }
 
+lazy_static! {
+    static ref PATH_ARG_REGEX: Regex = Regex::new(r"(:\w+)").unwrap();
+}
+
 impl Path {
     pub fn parse(value: String) -> Result<Self, PathErrors> {
-        let regex = Regex::new(r"(:\w+)").unwrap();
-        let regex = regex.replace_all(&value, r"([^/]+)") + "/?$";
-        let regex = Regex::new(&regex).unwrap();
-
-        Ok(Self { value, regex })
+        let parsed_path = PATH_ARG_REGEX.replace_all(&value, r"([^/]+)") + "/?$";
+        match Regex::new(&parsed_path) {
+            Ok(regex) => Ok(Self { value, regex }),
+            Err(error) => Err(PathErrors::RegexError(error)),
+        }
     }
 
     pub fn as_str(&self) -> &str {
@@ -35,27 +43,38 @@ impl Path {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fmt::Formatter;
 
     impl PartialEq for Path {
         fn eq(&self, other: &Self) -> bool {
-            self.value == other.value
+            self.value == other.value && self.regex.as_str() == other.regex.as_str()
         }
     }
 
     #[test]
-    fn parse_path() {
-        let cases = vec![(
-            "aaa",
-            Ok(Path {
-                value: String::from("aaa"),
-                regex: Regex::new("aaa").unwrap(),
-            }),
-        )];
+    fn successful_path_parsing() {
+        let cases = vec!["aaa"];
 
-        for (path_str, correct) in cases {
-            let path = Path::parse(path_str.to_string());
-            assert_eq!(path, correct);
+        for case in cases {
+            let solution = Ok(Path {
+                value: String::from(case),
+                regex: Regex::new(format!("{case}/?$").as_str()).unwrap(),
+            });
+
+            let path = Path::parse(case.to_string());
+            assert_eq!(path, solution);
+        }
+    }
+
+    #[test]
+    fn failed_path_parsing() {
+        let cases: Vec<&str> = vec![];
+
+        for case in cases {
+            let path = Path::parse(case.to_string());
+            assert_eq!(
+                path,
+                Err(PathErrors::RegexError(RError::Syntax("a".to_string())))
+            );
         }
     }
 }

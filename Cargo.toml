@@ -9,6 +9,7 @@ description = "Arkyo is a library for making HTTP Server"
 [dependencies]
 regex = "1.10"
 wasm-bindgen = { version =  "0.2.92", optional = true, default-features = false }
+lazy_static = "1.4.0"
 
 [profile.dev]
 opt-level = 0
