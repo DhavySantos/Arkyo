@@ -1,26 +1,26 @@
-use std::collections::HashMap;
 use crate::network::Status;
+use std::collections::HashMap;
 
-pub struct Response { 
+pub struct Response {
     headers: HashMap<String, String>,
     status: Status,
     body: String,
 }
 
-impl Response { 
-    pub fn new() -> Response { 
+impl Response {
+    pub fn new() -> Response {
         Response {
             headers: HashMap::new(),
             body: String::new(),
             status: Status::Ok,
         }
     }
-    
+
     pub fn headers(&mut self, input: HashMap<String, String>) {
         self.headers = input;
     }
-    
-    pub fn status(&mut self, input: Status)  {
+
+    pub fn status(&mut self, input: Status) {
         self.status = input;
     }
 
@@ -29,12 +29,15 @@ impl Response {
     }
 }
 
-impl ToString for Response { 
-    
+impl ToString for Response {
     fn to_string(&self) -> String {
         let mut output = String::new();
 
-        output.push_str(&format!("HTTP/1.1 {} {}\n", self.status.code(), self.status.to_string()));
+        output.push_str(&format!(
+            "HTTP/1.1 {} {}\n",
+            self.status as u16,
+            self.status.to_string()
+        ));
         output.push_str("Server: arkyo/0.0.7\n");
 
         for (key, value) in &self.headers {
@@ -45,5 +48,4 @@ impl ToString for Response {
 
         output
     }
-
 }
