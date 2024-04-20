@@ -1,10 +1,13 @@
-use super::Path;
 use crate::network::{Method, Request, Response};
+use crate::core::Path;
+use regex::Regex;
+
+pub type RouteHandler = fn (Request) -> Response;
 
 #[derive(Clone)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Route {
-    handler: fn(Request) -> Response,
+    handler: RouteHandler,
     method: Method,
     path: Path,
 }
@@ -15,7 +18,7 @@ impl Route {
     }
 
     #[must_use] pub fn compare(&self, input: &str) -> bool {
-        self.path.is_match(input)
+        self.path.is_exact_match(input)
     }
 
     #[must_use] pub fn handle(&self, request: Request) -> Response {

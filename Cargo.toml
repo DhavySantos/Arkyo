@@ -13,7 +13,7 @@ lazy_static = "~1.4"
 strum = "~0.26"
 strum_macros = "~0.26"
 
-[dev-dependecies]
+[dev-dependencies]
 color-eyre = "~0.6"
 rstest = "~0.18"
 const_panic = "~0.2"
