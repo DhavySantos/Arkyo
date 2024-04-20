@@ -1,17 +1,17 @@
-use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::io::{Read, Write};
 
 use crate::core::{Path, Route, Pipeline, Middleware};
 use crate::core::{RouteHandler, MiddlewareHandler};
-use crate::network::{Method, Request, Response};
 use crate::core::path::Errors as PathErrors;
+use crate::network::{Method, Request};
 
 pub enum Errors {
     Path(PathErrors),
 }
 
 pub struct Server {
-    routes: Vec<Route>,
+    pipeline: Vec<Pipeline>,
 }
 
 impl Default for Server {
@@ -20,34 +20,35 @@ impl Default for Server {
     }
 }
 
-impl Server {
-    #[must_use]
-    pub const fn new() -> Self {
-        Self { routes: Vec::new() }
-    }
 
-    pub fn use_route(
-        &mut self,
-        path_str: &str,
-        method: Method,
-        handler: fn(Request) -> Response,
-    ) -> Result<(), Errors> {
+impl Server {
+
+    #[must_use]
+    pub fn new() -> Server {
+        Server { pipeline: Vec::new() }
+    }
+    
+    pub fn use_route(&mut self, path_str: &str, method: Method, handler: RouteHandler) -> Result<(), Errors> {
         match Path::parse(path_str.to_string()) {
             Ok(path) => {
                 let route = Route::new(path, method, handler);
-                self.routes.push(route);
+                self.pipeline.push(Pipeline::Route(route));
                 Ok(())
             }
             Err(e) => Err(Errors::Path(e)),
         }
-    pipeline: Vec<Pipeline>
-}
-
-impl Server {
-    pub fn new() -> Server {
-        Server { pipeline: Vec::new() }
     }
 
+    pub fn use_middleware(&mut self, path_str: &str, handler: MiddlewareHandler) -> Result<(), Errors> {
+        match Path::parse(path_str.to_string()) {
+            Ok(path) => {
+                let middleware = Middleware::new(path, handler);
+                self.pipeline.push(Pipeline::Middleware(middleware));
+                Ok(())
+            }
+            Err(e) => Err(Errors::Path(e)),
+        }
+    }
 
     pub fn listen(&self, addr: &str) {
         let listener = match TcpListener::bind(addr) {
