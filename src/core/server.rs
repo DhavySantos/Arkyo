@@ -1,9 +1,10 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 
-use crate::core::path::Errors as PathErrors;
-use crate::core::{Path, Route};
+use crate::core::{Path, Route, Pipeline, Middleware};
+use crate::core::{RouteHandler, MiddlewareHandler};
 use crate::network::{Method, Request, Response};
+use crate::core::path::Errors as PathErrors;
 
 pub enum Errors {
     Path(PathErrors),
@@ -39,7 +40,14 @@ impl Server {
             }
             Err(e) => Err(Errors::Path(e)),
         }
+    pipeline: Vec<Pipeline>
+}
+
+impl Server {
+    pub fn new() -> Server {
+        Server { pipeline: Vec::new() }
     }
+
 
     pub fn listen(&self, addr: &str) {
         let listener = match TcpListener::bind(addr) {
@@ -49,14 +57,14 @@ impl Server {
 
         for incoming in listener.incoming() {
             if let Ok(stream) = incoming {
-                let routes = self.routes.clone();
-                std::thread::spawn(move || handle_connection(stream, routes));
+                let pipeline = self.pipeline.clone();
+                std::thread::spawn(move || handle_connection(stream, pipeline));
             };
         }
     }
 }
 
-fn handle_connection(mut stream: TcpStream, mut routes: Vec<Route>) {
+fn handle_connection(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
     let mut buffer = vec![0; 1024];
 
     let request_str = match stream.read(&mut buffer) {
@@ -64,20 +72,26 @@ fn handle_connection(mut stream: TcpStream, mut routes: Vec<Route>) {
         Err(err) => todo!("{err:#?}"),
     };
 
-    let request = match Request::from_str(&request_str) {
-        Err(err) => todo!("{err:#?}"),
+    let mut request = match Request::from_str(&request_str) {
+        Err(err) => panic!("{:#?}", err),
         Ok(request) => request,
     };
 
-    for route in &mut routes {
-        if route.method() != request.method() {
-            continue;
-        }
-        if !route.compare(request.path()) {
-            continue;
+    for pipe in pipeline {
+        if let Pipeline::Middleware(middleware) = pipe {
+            if !middleware.compare(&request.path()) { continue; }
+            match middleware.handle(request) {
+                Ok(_request) => { request = _request; continue; },
+                Err(_response) => { stream.write_all(_response.to_string().as_bytes()).unwrap(); break; },
+            }
         };
-        let response = route.handle(request);
-        stream.write_all(response.to_string().as_bytes()).unwrap();
-        break;
-    }
+
+        if let Pipeline::Route(route) = pipe {
+            if route.method() != request.method() { continue; }
+            if !route.compare(request.path()) { continue; };
+            let response = route.handle(request);
+            stream.write_all(response.to_string().as_bytes()).unwrap();
+            break;
+        };
+    };
 }

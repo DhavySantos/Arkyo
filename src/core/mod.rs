@@ -1,7 +1,11 @@
+mod middleware;
+mod pipeline;
 mod server;
 mod route;
 mod path;
 
-pub use self::server::Server;
-pub use self::route::Route;
-pub use self::path::Path;
+pub use self::middleware::*;
+pub use self::pipeline::*;
+pub use self::server::*;
+pub use self::route::*;
+pub use self::path::*;

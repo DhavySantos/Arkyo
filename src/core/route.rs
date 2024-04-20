@@ -1,11 +1,15 @@
-use super::Path;
 use crate::network::{Method, Request, Response};
+use crate::core::Path;
+use regex::Regex;
+
+pub type RouteHandler = fn (Request) -> Response;
 
 #[derive(Clone)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Route {
-    handler: fn(Request) -> Response,
+    handler: RouteHandler,
     method: Method,
+    regex: Regex,
     path: Path,
 }
 
