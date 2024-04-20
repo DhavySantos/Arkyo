@@ -7,9 +7,15 @@ pub struct Response {
     body: String,
 }
 
+impl Default for Response {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Response { 
-    pub fn new() -> Response { 
-        Response {
+    #[must_use] pub fn new() -> Self { 
+        Self {
             headers: HashMap::new(),
             body: String::new(),
             status: Status::Ok,
@@ -38,7 +44,7 @@ impl ToString for Response {
         output.push_str("Server: arkyo/0.0.7\n");
 
         for (key, value) in &self.headers {
-            output.push_str(&format!("{}: {}\n", key, value));
+            output.push_str(&format!("{key}: {value}\n"));
         }
 
         output.push_str(&format!("\n{}", self.body));

@@ -27,15 +27,15 @@ impl Path {
         }
     }
 
-    pub fn as_str(&self) -> &str {
+    #[must_use] pub fn as_str(&self) -> &str {
         self.value.as_str()
     }
 
-    pub fn as_regex(&self) -> &Regex {
+    #[must_use] pub fn as_regex(&self) -> &Regex {
         &self.regex
     }
 
-    pub fn is_match(&self, input: &str) -> bool {
+    #[must_use] pub fn is_match(&self, input: &str) -> bool {
         self.regex.is_match(input)
     }
 }

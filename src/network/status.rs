@@ -6,11 +6,11 @@ pub enum Status {
 
 impl Status { 
 
-    pub fn code(&self) -> u16 {
+    #[must_use] pub fn code(&self) -> u16 {
         match self {
-            Status::Ok => 200,
-            Status::NotFound => 404,
-            Status::BadGateway => 401,
+            Self::Ok => 200,
+            Self::NotFound => 404,
+            Self::BadGateway => 401,
         }
     }
 
@@ -20,9 +20,9 @@ impl ToString for Status {
 
     fn to_string(&self) -> String {
         match &self { 
-            Status::Ok => String::from("OK"),
-            Status::NotFound => String::from("NOT FOUND"),
-            Status::BadGateway => String::from("BAD GATEWAY"),
+            Self::Ok => String::from("OK"),
+            Self::NotFound => String::from("NOT FOUND"),
+            Self::BadGateway => String::from("BAD GATEWAY"),
         }
     }
 

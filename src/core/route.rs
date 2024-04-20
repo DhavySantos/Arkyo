@@ -10,32 +10,28 @@ pub struct Route {
 }
 
 impl Route {
-    pub fn new(path: Path, method: Method, handler: fn(Request) -> Response) -> Route {
-        Route {
-            path,
-            method,
-            handler,
-        }
+    pub fn new(path: Path, method: Method, handler: fn(Request) -> Response) -> Self {
+        Self { handler, method, path }
     }
 
-    pub fn compare(&self, input: &str) -> bool {
+    #[must_use] pub fn compare(&self, input: &str) -> bool {
         self.path.is_match(input)
     }
 
-    pub fn handle(&self, request: Request) -> Response {
+    #[must_use] pub fn handle(&self, request: Request) -> Response {
         (self.handler)(request)
     }
 
-    pub fn path(&self) -> &str {
+    #[must_use] pub fn path(&self) -> &str {
         self.path.as_str()
     }
 
-    pub fn method(&self) -> &Method {
+    #[must_use] pub fn method(&self) -> &Method {
         &self.method
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    
 }
