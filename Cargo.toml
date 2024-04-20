@@ -13,10 +13,11 @@ lazy_static = "~1.4"
 strum = "~0.26"
 strum_macros = "~0.26"
 
-color-eyre = "0.6"
-rstest = "0.18"
-rayon = "1.8"
-const_panic = "0.2"
+[dev-dependecies]
+color-eyre = "~0.6"
+rstest = "~0.18"
+const_panic = "~0.2"
+proptest = "~1.4"
 
 [lints.rust]
 unsafe_code =  "forbid"

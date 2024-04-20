@@ -1,12 +1,16 @@
-use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
+use std::net::{TcpListener, TcpStream};
 
+use crate::core::path::Errors as PathErrors;
+use crate::core::{Path, Route};
 use crate::network::{Method, Request, Response};
-use crate::core::{Route, Path};
 
+pub enum Errors {
+    Path(PathErrors),
+}
 
 pub struct Server {
-    routes: Vec<Route>
+    routes: Vec<Route>,
 }
 
 impl Default for Server {
@@ -16,24 +20,30 @@ impl Default for Server {
 }
 
 impl Server {
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self { routes: Vec::new() }
     }
 
-    pub fn use_route(&mut self, path_str: &str, method: Method, handler: fn(Request) -> Response) -> Result<(), ()> {
+    pub fn use_route(
+        &mut self,
+        path_str: &str,
+        method: Method,
+        handler: fn(Request) -> Response,
+    ) -> Result<(), Errors> {
         match Path::parse(path_str.to_string()) {
             Ok(path) => {
                 let route = Route::new(path, method, handler);
                 self.routes.push(route);
                 Ok(())
-            },
-            Err(_) => Err(()),
+            }
+            Err(e) => Err(Errors::Path(e)),
         }
     }
 
     pub fn listen(&self, addr: &str) {
         let listener = match TcpListener::bind(addr) {
-            Err(err) => panic!("{err:#?}"),
+            Err(err) => todo!("{err:#?}"),
             Ok(listener) => listener,
         };
 
@@ -42,7 +52,7 @@ impl Server {
                 let routes = self.routes.clone();
                 std::thread::spawn(move || handle_connection(stream, routes));
             };
-        };
+        }
     }
 }
 
@@ -51,19 +61,23 @@ fn handle_connection(mut stream: TcpStream, mut routes: Vec<Route>) {
 
     let request_str = match stream.read(&mut buffer) {
         Ok(size) => String::from_utf8_lossy(&buffer[..size]),
-        Err(err) => panic!("{err:#?}"),
+        Err(err) => todo!("{err:#?}"),
     };
 
     let request = match Request::from_str(&request_str) {
-        Err(err) => panic!("{err:#?}"),
+        Err(err) => todo!("{err:#?}"),
         Ok(request) => request,
     };
 
     for route in &mut routes {
-        if route.method() != request.method() { continue; }
-        if !route.compare(request.path()) { continue; };
+        if route.method() != request.method() {
+            continue;
+        }
+        if !route.compare(request.path()) {
+            continue;
+        };
         let response = route.handle(request);
         stream.write_all(response.to_string().as_bytes()).unwrap();
         break;
-    };
+    }
 }
