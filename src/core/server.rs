@@ -24,10 +24,10 @@ impl Default for Server {
 impl Server {
 
     #[must_use]
-    pub fn new() -> Server {
-        Server { pipeline: Vec::new() }
+    pub fn new() -> Self {
+        Self { pipeline: Vec::new() }
     }
-    
+
     pub fn use_route(&mut self, path_str: &str, method: Method, handler: RouteHandler) -> Result<(), Errors> {
         match Path::parse(path_str.to_string()) {
             Ok(path) => {
@@ -74,13 +74,13 @@ fn handle_connection(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
     };
 
     let mut request = match Request::from_str(&request_str) {
-        Err(err) => panic!("{:#?}", err),
+        Err(err) => todo!("{err:#?}"),
         Ok(request) => request,
     };
 
     for pipe in pipeline {
         if let Pipeline::Middleware(middleware) = pipe {
-            if !middleware.compare(&request.path()) { continue; }
+            if !middleware.compare(request.path()) { continue; }
             match middleware.handle(request) {
                 Ok(_request) => { request = _request; continue; },
                 Err(_response) => { stream.write_all(_response.to_string().as_bytes()).unwrap(); break; },

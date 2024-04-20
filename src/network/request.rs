@@ -28,7 +28,7 @@ impl Request {
         self.params = params;
     }
 
-    pub fn params(&self) -> &HashMap<String, String> {
+    #[must_use] pub fn params(&self) -> &HashMap<String, String> {
         &self.params
     }
     #[must_use]

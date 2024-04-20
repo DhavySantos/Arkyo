@@ -1,6 +1,6 @@
 use crate::network::{Method, Request, Response};
 use crate::core::Path;
-use regex::Regex;
+
 
 pub type RouteHandler = fn (Request) -> Response;
 
