@@ -9,7 +9,6 @@ pub type RouteHandler = fn (Request) -> Response;
 pub struct Route {
     handler: RouteHandler,
     method: Method,
-    regex: Regex,
     path: Path,
 }
 
@@ -19,7 +18,7 @@ impl Route {
     }
 
     #[must_use] pub fn compare(&self, input: &str) -> bool {
-        self.path.is_match(input)
+        self.path.is_exact_match(input)
     }
 
     #[must_use] pub fn handle(&self, request: Request) -> Response {
