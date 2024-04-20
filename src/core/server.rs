@@ -39,10 +39,18 @@ impl Server {
         }
     }
 
+    pub fn use_static_middleware(&mut self, path_str: &str, handler: MiddlewareHandler) -> Result<(), Errors> {
+        self.append_middleware(path_str, handler, true)
+    }
+
     pub fn use_middleware(&mut self, path_str: &str, handler: MiddlewareHandler) -> Result<(), Errors> {
+        self.append_middleware(path_str, handler, false)
+    }
+
+    fn append_middleware(&mut self, path_str: &str, handler: MiddlewareHandler, is_static: bool) -> Result<(), Errors> {
         match Path::parse(path_str.to_string()) {
             Ok(path) => {
-                let middleware = Middleware::new(path, handler);
+                let middleware = Middleware::new(path, handler, is_static);
                 self.pipeline.push(Pipeline::Middleware(middleware));
                 Ok(())
             }

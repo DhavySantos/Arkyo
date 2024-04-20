@@ -7,11 +7,12 @@ pub type MiddlewareHandler = fn (Request) -> Result<Request, Response>;
 pub struct Middleware {
     handler: MiddlewareHandler,
     path: Path,
+    is_static: bool
 }
 
 impl Middleware {
-    pub fn new(path: Path, handler: MiddlewareHandler) -> Self {
-        Self { handler, path }
+    pub fn new(path: Path, handler: MiddlewareHandler, is_static: bool) -> Self {
+        Self { handler, path, is_static }
     }
 
     pub fn handle(&self, request: Request) -> Result<Request, Response> {
@@ -19,10 +20,14 @@ impl Middleware {
     }
 
     #[must_use] pub fn compare(&self, input: &str) -> bool {
-        self.path.is_match(input)
+        if self.is_static {
+            self.path.is_exact_match(input)
+        } else {
+            self.path.is_match(input)
+        }
     }
 
-    #[must_use] pub fn path(&self) -> &str { 
+    #[must_use] pub fn path(&self) -> &str {
         self.path.as_str()
-    } 
+    }
 }
