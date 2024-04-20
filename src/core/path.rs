@@ -26,7 +26,7 @@ impl Path {
     ///assert_eq!(x, 5);
     ///```
     pub fn parse(value: String) -> Result<Self, Errors> {
-        let parsed_path = PATH_ARG_REGEX.replace_all(&value, r"([^/]+)") + "/?$";
+        let parsed_path = PATH_ARG_REGEX.replace_all(&value, r"([^/]+)") + "/?";
         match Regex::new(&parsed_path) {
             Ok(regex) => Ok(Self { value, regex }),
             Err(error) => Err(Errors::RegexError(error)),
@@ -47,15 +47,30 @@ impl Path {
     pub fn is_match(&self, input: &str) -> bool {
         self.regex.is_match(input)
     }
+
+    #[must_use]
+    pub fn is_exact_match(&self, input: &str) -> bool {
+        self.regex
+            .find_at(input, 0)
+            .map_or(false, |item| item.as_str().len() == input.len())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use proptest::prelude::*;
 
     impl PartialEq for Path {
         fn eq(&self, other: &Self) -> bool {
             self.value == other.value && self.regex.as_str() == other.regex.as_str()
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn no_crash_path_parse(s in "\\PC*"){
+            let _ = Path::parse(s);
         }
     }
 
@@ -67,7 +82,7 @@ mod tests {
             let solution = Ok(Path {
                 value: String::from(case),
                 regex: Regex::new(
-                    format!("{}/?$", PATH_ARG_REGEX.replace_all(case, r"([^/]+)")).as_str(),
+                    format!("{}/?", PATH_ARG_REGEX.replace_all(case, r"([^/]+)")).as_str(),
                 )
                 .unwrap(),
             });
@@ -75,6 +90,15 @@ mod tests {
             let path = Path::parse(case.to_string());
             assert_eq!(path, solution);
         }
+    }
+
+    #[test]
+    fn path_match_correcness() {
+        let path = Path::parse("/profile/:picture".to_string()).unwrap();
+        println!("{path:?}");
+
+        assert!(path.is_match("/profile/1/asdsdf"));
+        assert!(!path.is_exact_match("/profile/1/asdfasdf"));
     }
 
     #[test]
@@ -86,7 +110,7 @@ mod tests {
             assert_eq!(
                 path,
                 Err(Errors::RegexError(RError::Syntax(format!(
-                    "regex parse error:\n    {case}/?$\n        ^\nerror: unclosed group"
+                    "regex parse error:\n    {case}/?\n        ^\nerror: unclosed group"
                 ))))
             );
         }
