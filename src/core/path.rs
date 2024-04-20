@@ -72,6 +72,19 @@ mod tests {
         fn no_crash_path_parse(s in "\\PC*"){
             let _ = Path::parse(s);
         }
+
+        #[test]
+        fn match_tests_with_arguments(path_str in "\\w+", var in "\\w+", suffix in "\\w+") {
+            let path = Path::parse(format!("{path_str}/:{var}")).unwrap();
+
+            let exact_request = format!("{path_str}/var_content/");
+            let not_exact_request = format!("{path_str}/var_content/{suffix}");
+            prop_assert!(path.is_match(&exact_request));
+            prop_assert!(path.is_exact_match(&exact_request));
+
+            prop_assert!(path.is_match(&not_exact_request));
+            prop_assert!(!path.is_exact_match(&not_exact_request));
+        }
     }
 
     #[test]
@@ -96,6 +109,8 @@ mod tests {
     fn path_match_correcness() {
         let path = Path::parse("/profile/:picture".to_string()).unwrap();
         println!("{path:?}");
+
+        let _ = path.as_str();
 
         assert!(path.is_match("/profile/1/asdsdf"));
         assert!(!path.is_exact_match("/profile/1/asdfasdf"));
