@@ -126,7 +126,9 @@ fn handle_connection(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
                     continue;
                 }
                 Err(response) => {
-                    stream.write_all(response.to_string().as_bytes()).unwrap();
+                    stream
+                        .write_all(response.to_string().as_bytes())
+                        .unwrap_or(todo!("Log and retry ?"));
                     break;
                 }
             }
@@ -142,7 +144,9 @@ fn handle_connection(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
             };
 
             let response = route.handle(request);
-            stream.write_all(response.to_string().as_bytes()).unwrap();
+            stream
+                .write_all(response.to_string().as_bytes())
+                .unwrap_or(todo!("Log and retry ?"));
             break;
         };
     }
