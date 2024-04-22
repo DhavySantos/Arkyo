@@ -2,7 +2,7 @@ use std::str::FromStr;
 use strum_macros::{EnumString, IntoStaticStr};
 
 #[cfg_attr(test, derive(Debug))]
-#[derive(Clone, Copy, EnumString, IntoStaticStr, PartialEq)]
+#[derive(Clone, Copy, EnumString, IntoStaticStr, PartialEq, Eq)]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum Method {
     Get,

@@ -6,14 +6,14 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 #[cfg_attr(test, derive(Debug, PartialEq))]
-pub enum RequestErrors {
+pub enum Error {
     Regex(RError),
     Entry(String),
     NotHTTP,
     InvalidMethod,
 }
 
-#[cfg_attr(test, derive(Debug, PartialEq))]
+#[cfg_attr(test, derive(Debug, PartialEq, Eq))]
 pub struct Request {
     headers: HashMap<String, String>,
     params: HashMap<String, String>,
@@ -25,8 +25,8 @@ pub struct Request {
 
 static HEADER_REGEX_STR: &str = r"(?P<key>[^:\s]+): *(?P<value>.*)";
 lazy_static! {
-    static ref HTTP_REGEX: Regex = Regex::new(format!(r"^(?P<method>\w+) (?P<path>[^\s]+) (?P<version>[^\s]+)(?P<headers>(\n{HEADER_REGEX_STR})*)(\n\n(?P<body>(?s:.*)))\z").as_str()).unwrap();
-    static ref HEADER_REGEX: Regex = Regex::new(format!("({HEADER_REGEX_STR})").as_str()).unwrap();
+    static ref HTTP_REGEX: Regex = Regex::new(format!(r"^(?P<method>\w+) (?P<path>[^\s]+) (?P<version>[^\s]+)(?P<headers>(\n{HEADER_REGEX_STR})*)(\n\n(?P<body>(?s:.*)))\z").as_str()).expect("Known regex");
+    static ref HEADER_REGEX: Regex = Regex::new(format!("({HEADER_REGEX_STR})").as_str()).expect("Known regex");
 }
 
 impl Request {
@@ -60,8 +60,8 @@ impl Request {
         &self.method
     }
 
-    fn parse_http(content: Captures) -> Result<Request, RequestErrors> {
-        let mut request = Request::new();
+    fn parse_http(content: &Captures) -> Result<Self, Error> {
+        let mut request = Self::new();
 
         request.method = match Method::from_str(
             content
@@ -70,7 +70,7 @@ impl Request {
                 .as_str(),
         ) {
             Ok(method) => method,
-            Err(_) => return Err(RequestErrors::InvalidMethod),
+            Err(_) => return Err(Error::InvalidMethod),
         };
 
         request.path = String::from(
@@ -105,13 +105,12 @@ impl Request {
 }
 
 impl FromStr for Request {
-    type Err = RequestErrors;
+    type Err = Error;
 
-    fn from_str(input: &str) -> Result<Request, Self::Err> {
-        match HTTP_REGEX.captures(input) {
-            None => Err(RequestErrors::NotHTTP),
-            Some(content) => Self::parse_http(content),
-        }
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        HTTP_REGEX
+            .captures(input)
+            .map_or(Err(Error::NotHTTP), |content| Self::parse_http(&content))
     }
 }
 
@@ -130,6 +129,6 @@ no-space:test
 body content";
 
         let result = Request::from_str(request);
-        println!("{:?}", result);
+        println!("{result:?}");
     }
 }

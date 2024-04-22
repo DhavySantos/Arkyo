@@ -9,5 +9,6 @@ pub mod prelude {
     pub mod errors {
         pub use crate::core::path::Error as PathError;
         pub use crate::core::server::Error as ServerError;
+        pub use crate::network::RequestError;
     }
 }

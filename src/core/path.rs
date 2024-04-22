@@ -100,7 +100,7 @@ mod tests {
                 regex: Regex::new(
                     format!("{}/?", PATH_ARG_REGEX.replace_all(case, r"([^/]+)")).as_str(),
                 )
-                .unwrap(),
+                .expect("testing scenario"),
             });
 
             let path = Path::parse(case.to_string());
@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     fn path_match_correcness() {
-        let path = Path::parse("/profile/:picture//".to_string()).unwrap();
+        let path = Path::parse("/profile/:picture//".to_string()).expect("testing scenario");
         println!("{path:?}");
 
         let exact_request = "/profile/1///";
