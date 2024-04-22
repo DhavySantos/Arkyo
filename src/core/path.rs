@@ -15,16 +15,14 @@ pub struct Path {
 }
 
 lazy_static! {
-    static ref PATH_ARG_REGEX: Regex = Regex::new(r"(:\w+)").unwrap();
+    static ref PATH_ARG_REGEX: Regex =
+        Regex::new(r"(:\w+)").expect("Expected to be proven correct.");
 }
 
 impl Path {
-    /// # Examples
+    /// # Errors
     ///
-    ///```
-    ///let x = 5;
-    ///assert_eq!(x, 5);
-    ///```
+    /// Will return `Err` if the parsed string is invalid for path
     pub fn parse(value: String) -> Result<Self, Error> {
         let parsed_path = PATH_ARG_REGEX.replace_all(&value, r"([^/]+)") + "/?";
 

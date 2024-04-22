@@ -22,12 +22,15 @@ impl Default for Server {
 
 impl Server {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             pipeline: Vec::new(),
         }
     }
 
+    /// # Errors
+    ///
+    /// Returns `Err` if the string is not a valid path
     pub fn use_route(
         &mut self,
         path_str: &str,
@@ -44,6 +47,9 @@ impl Server {
         }
     }
 
+    /// # Errors
+    ///
+    /// Returns `Err` if the string is not a valid path
     pub fn use_static_middleware(
         &mut self,
         path_str: &str,
@@ -52,6 +58,9 @@ impl Server {
         self.append_middleware(path_str, handler, true)
     }
 
+    /// # Errors
+    ///
+    /// Returns `Err` if the string is not a valid path
     pub fn use_middleware(
         &mut self,
         path_str: &str,
@@ -109,13 +118,14 @@ fn handle_connection(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
             if !middleware.compare(request.path()) {
                 continue;
             }
+
             match middleware.handle(request) {
-                Ok(_request) => {
-                    request = _request;
+                Ok(modified_request) => {
+                    request = modified_request;
                     continue;
                 }
-                Err(_response) => {
-                    stream.write_all(_response.to_string().as_bytes()).unwrap();
+                Err(response) => {
+                    stream.write_all(response.to_string().as_bytes()).unwrap();
                     break;
                 }
             }
@@ -125,9 +135,11 @@ fn handle_connection(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
             if route.method() != request.method() {
                 continue;
             }
+
             if !route.compare(request.path()) {
                 continue;
             };
+
             let response = route.handle(request);
             stream.write_all(response.to_string().as_bytes()).unwrap();
             break;
