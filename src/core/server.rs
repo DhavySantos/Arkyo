@@ -1,5 +1,7 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::net::{TcpListener, TcpStream};
+use std::str::FromStr;
 
 use crate::core::path::Error as PathError;
 use crate::core::{Middleware, Path, Pipeline, Route};
