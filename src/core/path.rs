@@ -3,7 +3,7 @@ use regex::Error as RError;
 use regex::Regex;
 
 #[cfg_attr(test, derive(Debug, PartialEq))]
-pub enum Errors {
+pub enum Error {
     RegexError(RError),
 }
 
@@ -25,11 +25,16 @@ impl Path {
     ///let x = 5;
     ///assert_eq!(x, 5);
     ///```
-    pub fn parse(value: String) -> Result<Self, Errors> {
+    pub fn parse(value: String) -> Result<Self, Error> {
         let parsed_path = PATH_ARG_REGEX.replace_all(&value, r"([^/]+)") + "/?";
+
+        //tirar duplicatas do "/" e deixar a última opcional
+        //escapar caracteres especiais de regex
+        //crate feature utf vs ascii
+
         match Regex::new(&parsed_path) {
             Ok(regex) => Ok(Self { value, regex }),
-            Err(error) => Err(Errors::RegexError(error)),
+            Err(error) => Err(Error::RegexError(error)),
         }
     }
 
@@ -107,14 +112,17 @@ mod tests {
 
     #[test]
     fn path_match_correcness() {
-        let path = Path::parse("/profile/:picture".to_string()).unwrap();
-        println!("{path:?}"
-        );
+        let path = Path::parse("/profile/:picture//".to_string()).unwrap();
+        println!("{path:?}");
 
-        let _ = path.as_str();
+        let exact_request = "/profile/1///";
+        let extended_request = "/profile/1//asdsdf";
 
-        assert!(path.is_match("/profile/1/asdsdf"));
-        assert!(!path.is_exact_match("/profile/1/asdfasdf"));
+        assert!(path.is_match(exact_request));
+        assert!(path.is_exact_match(exact_request));
+
+        assert!(path.is_match(extended_request));
+        assert!(!path.is_exact_match(extended_request));
     }
 
     #[test]

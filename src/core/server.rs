@@ -1,13 +1,13 @@
-use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
+use std::net::{TcpListener, TcpStream};
 
-use crate::core::{Path, Route, Pipeline, Middleware};
-use crate::core::{RouteHandler, MiddlewareHandler};
-use crate::core::path::Errors as PathErrors;
+use crate::core::path::Error as PathError;
+use crate::core::{Middleware, Path, Pipeline, Route};
+use crate::core::{MiddlewareHandler, RouteHandler};
 use crate::network::{Method, Request};
 
-pub enum Errors {
-    Path(PathErrors),
+pub enum Error {
+    Path(PathError),
 }
 
 pub struct Server {
@@ -20,41 +20,59 @@ impl Default for Server {
     }
 }
 
-
 impl Server {
-
     #[must_use]
     pub fn new() -> Self {
-        Self { pipeline: Vec::new() }
+        Self {
+            pipeline: Vec::new(),
+        }
     }
 
-    pub fn use_route(&mut self, path_str: &str, method: Method, handler: RouteHandler) -> Result<(), Errors> {
+    pub fn use_route(
+        &mut self,
+        path_str: &str,
+        method: Method,
+        handler: RouteHandler,
+    ) -> Result<(), Error> {
         match Path::parse(path_str.to_string()) {
             Ok(path) => {
                 let route = Route::new(path, method, handler);
                 self.pipeline.push(Pipeline::Route(route));
                 Ok(())
             }
-            Err(e) => Err(Errors::Path(e)),
+            Err(e) => Err(Error::Path(e)),
         }
     }
 
-    pub fn use_static_middleware(&mut self, path_str: &str, handler: MiddlewareHandler) -> Result<(), Errors> {
+    pub fn use_static_middleware(
+        &mut self,
+        path_str: &str,
+        handler: MiddlewareHandler,
+    ) -> Result<(), Error> {
         self.append_middleware(path_str, handler, true)
     }
 
-    pub fn use_middleware(&mut self, path_str: &str, handler: MiddlewareHandler) -> Result<(), Errors> {
+    pub fn use_middleware(
+        &mut self,
+        path_str: &str,
+        handler: MiddlewareHandler,
+    ) -> Result<(), Error> {
         self.append_middleware(path_str, handler, false)
     }
 
-    fn append_middleware(&mut self, path_str: &str, handler: MiddlewareHandler, is_static: bool) -> Result<(), Errors> {
+    fn append_middleware(
+        &mut self,
+        path_str: &str,
+        handler: MiddlewareHandler,
+        is_static: bool,
+    ) -> Result<(), Error> {
         match Path::parse(path_str.to_string()) {
             Ok(path) => {
                 let middleware = Middleware::new(path, handler, is_static);
                 self.pipeline.push(Pipeline::Middleware(middleware));
                 Ok(())
             }
-            Err(e) => Err(Errors::Path(e)),
+            Err(e) => Err(Error::Path(e)),
         }
     }
 
@@ -88,19 +106,31 @@ fn handle_connection(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
 
     for pipe in pipeline {
         if let Pipeline::Middleware(middleware) = pipe {
-            if !middleware.compare(request.path()) { continue; }
+            if !middleware.compare(request.path()) {
+                continue;
+            }
             match middleware.handle(request) {
-                Ok(_request) => { request = _request; continue; },
-                Err(_response) => { stream.write_all(_response.to_string().as_bytes()).unwrap(); break; },
+                Ok(_request) => {
+                    request = _request;
+                    continue;
+                }
+                Err(_response) => {
+                    stream.write_all(_response.to_string().as_bytes()).unwrap();
+                    break;
+                }
             }
         };
 
         if let Pipeline::Route(route) = pipe {
-            if route.method() != request.method() { continue; }
-            if !route.compare(request.path()) { continue; };
+            if route.method() != request.method() {
+                continue;
+            }
+            if !route.compare(request.path()) {
+                continue;
+            };
             let response = route.handle(request);
             stream.write_all(response.to_string().as_bytes()).unwrap();
             break;
         };
-    };
+    }
 }
