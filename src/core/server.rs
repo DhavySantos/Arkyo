@@ -38,7 +38,7 @@ impl Server {
         method: Method,
         handler: RouteHandler,
     ) -> Result<(), Error> {
-        match Path::parse(path_str.to_string()) {
+        match Path::parse(path_str) {
             Ok(path) => {
                 let route = Route::new(path, method, handler);
                 self.pipeline.push(Pipeline::Route(route));
@@ -76,7 +76,7 @@ impl Server {
         handler: MiddlewareHandler,
         is_static: bool,
     ) -> Result<(), Error> {
-        match Path::parse(path_str.to_string()) {
+        match Path::parse(path_str) {
             Ok(path) => {
                 let middleware = Middleware::new(path, handler, is_static);
                 self.pipeline.push(Pipeline::Middleware(middleware));
