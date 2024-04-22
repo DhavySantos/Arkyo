@@ -1,6 +1,5 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::net::{TcpListener, TcpStream};
 use std::str::FromStr;
 
 use crate::core::path::Error as PathError;
@@ -107,11 +106,11 @@ fn handle_connection(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
 
     let request_str = match stream.read(&mut buffer) {
         Ok(size) => String::from_utf8_lossy(&buffer[..size]),
-        Err(err) => todo!("{err:#?}"),
+        Err(err) => todo!("Request error !"),
     };
 
     let mut request = match Request::from_str(&request_str) {
-        Err(err) => todo!("{err:#?}"),
+        Err(err) => todo!("Request error !"),
         Ok(request) => request,
     };
 

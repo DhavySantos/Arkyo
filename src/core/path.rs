@@ -78,7 +78,7 @@ mod tests {
 
         #[test]
         fn match_tests_with_arguments(path_str in "\\w+", var in "\\w+", suffix in "\\w+") {
-            let path = Path::parse(format!("{path_str}/:{var}")).unwrap();
+            let path = Path::parse(format!("{path_str}/:{var}")).expect("Test scenario");
 
             let exact_request = format!("{path_str}/var_content/");
             let not_exact_request = format!("{path_str}/var_content/{suffix}");
