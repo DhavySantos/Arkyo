@@ -7,7 +7,6 @@ use std::error::Error;
 pub struct Location {
     value: String,
     regex: Regex,
-    prefix_regex: Regex,
 }
 
 static R_PARAM: Lazy<Regex> = Lazy::new(|| Regex::new(r":(\w+)").unwrap());
@@ -15,17 +14,12 @@ static R_PARAM: Lazy<Regex> = Lazy::new(|| Regex::new(r":(\w+)").unwrap());
 impl Location {
     pub fn new(value: impl Into<String>) -> Result<Self, Box<dyn Error>> {
         let value = value.into();
-        let pattern = format!("^{}$", R_PARAM.replace_all(&value, r"([^/]+)"));
+        let pattern = format!("^{}", R_PARAM.replace_all(&value, r"([^/]+)"))
+            + if value.ends_with("/") { "?" } else { "/?" };
+
         let regex = Regex::new(&pattern)?;
 
-        let prefix_pattern = format!("^{}", R_PARAM.replace_all(&value, r"([^/]+)"));
-        let prefix_regex = Regex::new(&prefix_pattern)?;
-
-        Ok(Self {
-            value,
-            regex,
-            prefix_regex,
-        })
+        Ok(Self { value, regex })
     }
 
     pub fn as_str(&self) -> &str {
@@ -37,11 +31,13 @@ impl Location {
     }
 
     pub fn is_match(&self, value: &str) -> bool {
-        self.regex.is_match(value)
+        self.regex
+            .find_at(value, 0)
+            .map_or(false, |item| item.as_str().len() == value.len())
     }
 
     pub fn start_with(&self, value: &str) -> bool {
-        self.prefix_regex.is_match(value)
+        self.regex.is_match(value)
     }
 }
 
