@@ -17,23 +17,69 @@ impl Server {
         Self::default()
     }
 
-    pub fn add_route<T: Fn(&mut Request, &mut Response) + 'static>(
+    pub fn get<T>(&mut self, location: impl Into<String>, callback: T) -> Result<(), Box<dyn Error>>
+    where
+        T: Fn(&mut Request, &mut Response) + 'static,
+    {
+        self.add_route(location, Method::GET, callback)
+    }
+
+    pub fn post<T>(
+        &mut self,
+        location: impl Into<String>,
+        callback: T,
+    ) -> Result<(), Box<dyn Error>>
+    where
+        T: Fn(&mut Request, &mut Response) + 'static,
+    {
+        self.add_route(location, Method::POST, callback)
+    }
+
+    pub fn patch<T>(
+        &mut self,
+        location: impl Into<String>,
+        callback: T,
+    ) -> Result<(), Box<dyn Error>>
+    where
+        T: Fn(&mut Request, &mut Response) + 'static,
+    {
+        self.add_route(location, Method::PATCH, callback)
+    }
+
+    pub fn delete<T>(
+        &mut self,
+        location: impl Into<String>,
+        callback: T,
+    ) -> Result<(), Box<dyn Error>>
+    where
+        T: Fn(&mut Request, &mut Response) + 'static,
+    {
+        self.add_route(location, Method::DELETE, callback)
+    }
+
+    fn add_route<T>(
         &mut self,
         location: impl Into<String>,
         method: Method,
         callback: T,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), Box<dyn Error>>
+    where
+        T: Fn(&mut Request, &mut Response) + 'static,
+    {
         let location = Location::new(location.into())?;
         let route = Route::new(location, method, callback);
         self.pipeline.push(Pipeline::Route(route));
         Ok(())
     }
 
-    pub fn add_middleware<T: Fn(&mut Request, &mut Response) + 'static>(
+    pub fn add_middleware<T>(
         &mut self,
         location: impl Into<String>,
         callback: T,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), Box<dyn Error>>
+    where
+        T: Fn(&mut Request, &mut Response) + 'static,
+    {
         let location = Location::new(location.into())?;
         let middleware = Middleware::new(location, callback);
         self.pipeline.push(Pipeline::Middleware(middleware));
@@ -49,10 +95,9 @@ impl Server {
         for incoming in listener.incoming() {
             let pipeline = self.pipeline.clone();
 
-            match incoming {
-                Ok(stream) => handle_incoming(stream, pipeline),
-                Err(err) => continue,
-            };
+            if let Ok(stream) = incoming {
+                handle_incoming(stream, pipeline).ok();
+            }
         }
     }
 }
