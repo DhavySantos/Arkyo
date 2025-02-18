@@ -1,2 +1,3 @@
-/target
-main.rs
+bin/main.rs
+.direnv/
+target/
