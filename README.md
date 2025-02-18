@@ -25,7 +25,7 @@ arkyo = "0.0.7"
 
 ## Example Usage
 ```rust
-use your_http_server_lib::Server;
+use arkyo::prellude::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = Server::new();
