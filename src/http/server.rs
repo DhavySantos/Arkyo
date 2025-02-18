@@ -57,7 +57,7 @@ impl Server {
         self.add_route(location, Method::DELETE, callback)
     }
 
-    fn add_route<T>(
+    pub fn add_route<T>(
         &mut self,
         location: impl Into<String>,
         method: Method,
