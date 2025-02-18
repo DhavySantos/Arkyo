@@ -12,74 +12,62 @@ pub struct Server {
     pipeline: Vec<Pipeline>,
 }
 
+type Handler = fn(&mut Request, &mut Response);
+
 impl Server {
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn get<T>(&mut self, location: impl Into<String>, callback: T) -> Result<(), Box<dyn Error>>
-    where
-        T: Fn(&mut Request, &mut Response) + 'static,
-    {
+    pub fn get<T: Fn(&mut Request, &mut Response) + 'static>(
+        &mut self,
+        location: impl Into<String>,
+        callback: T,
+    ) -> Result<(), Box<dyn Error>> {
         self.add_route(location, Method::GET, callback)
     }
 
-    pub fn post<T>(
+    pub fn post<T: Fn(&mut Request, &mut Response) + 'static>(
         &mut self,
         location: impl Into<String>,
         callback: T,
-    ) -> Result<(), Box<dyn Error>>
-    where
-        T: Fn(&mut Request, &mut Response) + 'static,
-    {
+    ) -> Result<(), Box<dyn Error>> {
         self.add_route(location, Method::POST, callback)
     }
 
-    pub fn patch<T>(
+    pub fn patch<T: Fn(&mut Request, &mut Response) + 'static>(
         &mut self,
         location: impl Into<String>,
         callback: T,
-    ) -> Result<(), Box<dyn Error>>
-    where
-        T: Fn(&mut Request, &mut Response) + 'static,
-    {
+    ) -> Result<(), Box<dyn Error>> {
         self.add_route(location, Method::PATCH, callback)
     }
 
-    pub fn delete<T>(
+    pub fn delete<T: Fn(&mut Request, &mut Response) + 'static>(
         &mut self,
         location: impl Into<String>,
         callback: T,
-    ) -> Result<(), Box<dyn Error>>
-    where
-        T: Fn(&mut Request, &mut Response) + 'static,
-    {
+    ) -> Result<(), Box<dyn Error>> {
         self.add_route(location, Method::DELETE, callback)
     }
 
-    pub fn add_route<T>(
+    pub fn add_route<T: Fn(&mut Request, &mut Response) + 'static>(
         &mut self,
         location: impl Into<String>,
         method: Method,
         callback: T,
-    ) -> Result<(), Box<dyn Error>>
-    where
-        T: Fn(&mut Request, &mut Response) + 'static,
-    {
+    ) -> Result<(), Box<dyn Error>> {
         let location = Location::new(location.into())?;
         let route = Route::new(location, method, callback);
         self.pipeline.push(Pipeline::Route(route));
         Ok(())
     }
 
-    pub fn add_middleware<T>(
+    pub fn add_middleware<T: Fn(&mut Request, &mut Response) + 'static>(
         &mut self,
         location: impl Into<String>,
         callback: T,
-    ) -> Result<(), Box<dyn Error>>
-    where
-        T: Fn(&mut Request, &mut Response) + 'static,
-    {
+    ) -> Result<(), Box<dyn Error>> {
         let location = Location::new(location.into())?;
         let middleware = Middleware::new(location, callback);
         self.pipeline.push(Pipeline::Middleware(middleware));
