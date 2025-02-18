@@ -14,7 +14,7 @@ pub struct Request {
     headers: HashMap<String, String>,
     params: HashMap<String, String>,
     pub(crate) location: String,
-    pub(crate) version: String,
+    version: String,
     method: Method,
     body: String,
 }
@@ -69,8 +69,8 @@ impl Request {
         Err("Invalid HTTP format".into())
     }
 
-    pub fn fetch_params(&mut self, location: Location) {
-        for capture in location.as_regex().captures_iter(&self.location) {}
+    pub fn location(&self) -> &str {
+        &self.location
     }
 
     pub fn method(&self) -> &Method {
