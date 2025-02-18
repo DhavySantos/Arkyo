@@ -1,4 +1,4 @@
-use crate::component::{Middleware, MiddlewareHandler, Pipeline, Route, RouteHandler};
+use crate::component::{Middleware, Pipeline, Route};
 use crate::http::{Method, Request, Response};
 use crate::util::Location;
 
@@ -17,25 +17,25 @@ impl Server {
         Self::default()
     }
 
-    pub fn add_route(
+    pub fn add_route<T: Fn(&mut Request, &mut Response) + 'static>(
         &mut self,
         location: impl Into<String>,
         method: Method,
-        handler: RouteHandler,
+        callback: T,
     ) -> Result<(), Box<dyn Error>> {
         let location = Location::new(location.into())?;
-        let route = Route::new(location, method, handler);
+        let route = Route::new(location, method, callback);
         self.pipeline.push(Pipeline::Route(route));
         Ok(())
     }
 
-    pub fn add_middleware(
+    pub fn add_middleware<T: Fn(&mut Request, &mut Response) + 'static>(
         &mut self,
         location: impl Into<String>,
-        handler: MiddlewareHandler,
+        callback: T,
     ) -> Result<(), Box<dyn Error>> {
         let location = Location::new(location.into())?;
-        let middleware = Middleware::new(location, handler);
+        let middleware = Middleware::new(location, callback);
         self.pipeline.push(Pipeline::Middleware(middleware));
         Ok(())
     }
