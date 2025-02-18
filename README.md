@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 ## 🛣️ Roadmap
-- [x] 🧩 WebSocket support.
+- [ ] 🧩 WebSocket support.
 - [ ] 🔒 HTTPS support.
 - [ ] 📈 Persistent connection handling.
 - [ ] 📝 Improved error handling & logging.
