@@ -1,14 +1,12 @@
-pub mod core;
-pub mod network;
+pub mod component;
+pub mod http;
+pub mod util;
 
-pub mod prelude {
-    pub use crate::core::{Middleware, Route, Server};
-
-    pub use crate::network::{Method, Request, Response, Status};
-
-    pub mod errors {
-        pub use crate::core::path::Error as PathError;
-        pub use crate::core::server::Error as ServerError;
-        pub use crate::network::RequestError;
-    }
+pub mod prellude {
+    pub use crate::component::Middleware;
+    pub use crate::component::Route;
+    pub use crate::http::Method;
+    pub use crate::http::Request;
+    pub use crate::http::Response;
+    pub use crate::http::Server;
 }
