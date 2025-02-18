@@ -20,42 +20,31 @@ impl Server {
     }
 
     pub fn get<T: Fn(&mut Request, &mut Response) + 'static>(
-        &mut self,
-        location: impl Into<String>,
-        callback: T,
+        &mut self, location: impl Into<String>, callback: T,
     ) -> Result<(), Box<dyn Error>> {
         self.add_route(location, Method::GET, callback)
     }
 
     pub fn post<T: Fn(&mut Request, &mut Response) + 'static>(
-        &mut self,
-        location: impl Into<String>,
-        callback: T,
+        &mut self, location: impl Into<String>, callback: T,
     ) -> Result<(), Box<dyn Error>> {
         self.add_route(location, Method::POST, callback)
     }
 
     pub fn patch<T: Fn(&mut Request, &mut Response) + 'static>(
-        &mut self,
-        location: impl Into<String>,
-        callback: T,
+        &mut self, location: impl Into<String>, callback: T,
     ) -> Result<(), Box<dyn Error>> {
         self.add_route(location, Method::PATCH, callback)
     }
 
     pub fn delete<T: Fn(&mut Request, &mut Response) + 'static>(
-        &mut self,
-        location: impl Into<String>,
-        callback: T,
+        &mut self, location: impl Into<String>, callback: T,
     ) -> Result<(), Box<dyn Error>> {
         self.add_route(location, Method::DELETE, callback)
     }
 
     pub fn add_route<T: Fn(&mut Request, &mut Response) + 'static>(
-        &mut self,
-        location: impl Into<String>,
-        method: Method,
-        callback: T,
+        &mut self, location: impl Into<String>, method: Method, callback: T,
     ) -> Result<(), Box<dyn Error>> {
         let location = Location::new(location.into())?;
         let route = Route::new(location, method, callback);
@@ -64,9 +53,7 @@ impl Server {
     }
 
     pub fn add_middleware<T: Fn(&mut Request, &mut Response) + 'static>(
-        &mut self,
-        location: impl Into<String>,
-        callback: T,
+        &mut self, location: impl Into<String>, callback: T,
     ) -> Result<(), Box<dyn Error>> {
         let location = Location::new(location.into())?;
         let middleware = Middleware::new(location, callback);

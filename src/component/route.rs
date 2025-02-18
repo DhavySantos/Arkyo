@@ -12,9 +12,7 @@ pub struct Route {
 
 impl Route {
     pub fn new<T: Fn(&mut Request, &mut Response) + 'static>(
-        location: Location,
-        method: Method,
-        callback: T,
+        location: Location, method: Method, callback: T,
     ) -> Self {
         let callback = Arc::new(callback);
         Self {

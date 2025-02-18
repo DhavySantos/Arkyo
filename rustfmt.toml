@@ -1,0 +1,9 @@
+reorder_imports = false
+binop_separator = "back"
+brace_style = "SameLineWhere"
+condense_wildcard_suffixes = true
+control_brace_style = "ClosingNextLine"
+fn_args_layout = "Compressed"
+fn_params_layout = "Compressed"
+fn_single_line = true
+format_code_in_doc_comments = true

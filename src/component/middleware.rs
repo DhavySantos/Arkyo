@@ -10,8 +10,7 @@ pub struct Middleware {
 
 impl Middleware {
     pub fn new<T: Fn(&mut Request, &mut Response) + 'static>(
-        location: Location,
-        callback: T,
+        location: Location, callback: T,
     ) -> Self {
         let callback = Arc::new(callback);
         Self { location, callback }
