@@ -5,6 +5,7 @@ use crate::util::Location;
 use std::error::Error;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::thread;
 
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[derive(Default)]
@@ -19,31 +20,7 @@ impl Server {
         Self::default()
     }
 
-    pub fn get<T: Fn(&mut Request, &mut Response) + 'static>(
-        &mut self, location: impl Into<String>, callback: T,
-    ) -> Result<(), Box<dyn Error>> {
-        self.add_route(location, Method::GET, callback)
-    }
-
-    pub fn post<T: Fn(&mut Request, &mut Response) + 'static>(
-        &mut self, location: impl Into<String>, callback: T,
-    ) -> Result<(), Box<dyn Error>> {
-        self.add_route(location, Method::POST, callback)
-    }
-
-    pub fn patch<T: Fn(&mut Request, &mut Response) + 'static>(
-        &mut self, location: impl Into<String>, callback: T,
-    ) -> Result<(), Box<dyn Error>> {
-        self.add_route(location, Method::PATCH, callback)
-    }
-
-    pub fn delete<T: Fn(&mut Request, &mut Response) + 'static>(
-        &mut self, location: impl Into<String>, callback: T,
-    ) -> Result<(), Box<dyn Error>> {
-        self.add_route(location, Method::DELETE, callback)
-    }
-
-    pub fn add_route<T: Fn(&mut Request, &mut Response) + 'static>(
+    pub fn add_route<T: Fn(&mut Request, &mut Response) + Send + Sync + 'static>(
         &mut self, location: impl Into<String>, method: Method, callback: T,
     ) -> Result<(), Box<dyn Error>> {
         let location = Location::new(location.into())?;
@@ -52,7 +29,7 @@ impl Server {
         Ok(())
     }
 
-    pub fn add_middleware<T: Fn(&mut Request, &mut Response) + 'static>(
+    pub fn add_middleware<T: Fn(&mut Request, &mut Response) + Send + Sync + 'static>(
         &mut self, location: impl Into<String>, callback: T,
     ) -> Result<(), Box<dyn Error>> {
         let location = Location::new(location.into())?;
@@ -71,18 +48,18 @@ impl Server {
             let pipeline = self.pipeline.clone();
 
             if let Ok(stream) = incoming {
-                handle_incoming(stream, pipeline).ok();
+                thread::spawn(|| handle_incoming(stream, pipeline));
             }
         }
     }
 }
 
-fn handle_incoming(mut stream: TcpStream, pipeline: Vec<Pipeline>) -> Result<(), Box<dyn Error>> {
+fn handle_incoming(mut stream: TcpStream, pipeline: Vec<Pipeline>) {
     let mut buffer = vec![0; 1024];
 
-    let size = stream.read(&mut buffer)?;
+    let size = stream.read(&mut buffer).unwrap();
     let request_string = String::from_utf8_lossy(&buffer[..size]);
-    let mut request = Request::from(request_string)?;
+    let mut request = Request::from(request_string).unwrap();
     let mut response = Response::new(stream);
 
     for component in pipeline {
@@ -103,6 +80,4 @@ fn handle_incoming(mut stream: TcpStream, pipeline: Vec<Pipeline>) -> Result<(),
             }
         };
     }
-
-    Ok(())
 }
