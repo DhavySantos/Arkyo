@@ -4,12 +4,12 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Middleware {
-    callback: Arc<dyn Fn(&mut Request, &mut Response)>,
+    callback: Arc<dyn Fn(&mut Request, &mut Response) + Send + Sync>,
     location: Location,
 }
 
 impl Middleware {
-    pub fn new<T: Fn(&mut Request, &mut Response) + 'static>(
+    pub fn new<T: Fn(&mut Request, &mut Response) + Send + Sync + 'static>(
         location: Location, callback: T,
     ) -> Self {
         let callback = Arc::new(callback);

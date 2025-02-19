@@ -5,13 +5,13 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Route {
-    callback: Arc<dyn Fn(&mut Request, &mut Response)>,
+    callback: Arc<dyn Fn(&mut Request, &mut Response) + Send + Sync>,
     location: Location,
     method: Method,
 }
 
 impl Route {
-    pub fn new<T: Fn(&mut Request, &mut Response) + 'static>(
+    pub fn new<T: Fn(&mut Request, &mut Response) + Send + Sync + 'static>(
         location: Location, method: Method, callback: T,
     ) -> Self {
         let callback = Arc::new(callback);
