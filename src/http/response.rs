@@ -23,6 +23,14 @@ impl Response {
         }
     }
 
+    pub fn get_header<T: Into<String>>(&self, name: T) -> Option<&String> {
+        self.headers.get(&name.into())
+    }
+
+    pub fn set_header<T: Into<String>>(&mut self, name: T, value: T) {
+        self.headers.insert(name.into(), value.into());
+    }
+
     pub fn body(&mut self, body: impl Into<String>) {
         self.body = body.into();
     }
