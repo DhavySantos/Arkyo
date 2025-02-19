@@ -1,3 +1,4 @@
+#![cfg_attr(debug_assertions, allow(dead_code, unused))]
 pub mod component;
 pub mod http;
 pub mod util;

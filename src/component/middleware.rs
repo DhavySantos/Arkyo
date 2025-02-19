@@ -28,6 +28,8 @@ impl Middleware {
 #[cfg(debug_assertions)]
 impl std::fmt::Debug for Middleware {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
+        f.debug_struct("Middleware")
+            .field("location", &self.location)
+            .finish()
     }
 }

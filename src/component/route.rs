@@ -38,6 +38,9 @@ impl Route {
 #[cfg(debug_assertions)]
 impl std::fmt::Debug for Route {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
+        f.debug_struct("Route")
+            .field("location", &self.location)
+            .field("method", &self.method)
+            .finish()
     }
 }
